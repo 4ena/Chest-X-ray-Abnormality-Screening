@@ -10,13 +10,27 @@
 //   Infiltration, Pneumothorax, Emphysema, Fibrosis, Effusion,
 //   Pneumonia, Pleural Thickening, Nodule, Mass, Hernia
 
+export type Tier = 2 | 3 | 4;
+export type TierLabel = "urgent" | "semi-urgent" | "moderate";
+
 export interface Finding {
   pathology: string;
   confidence: number;
   severity: "critical" | "moderate" | "mild" | "normal";
+  tier: Tier;
+  tierLabel: TierLabel;
   explanation: string;
   clinicalNote: string;
 }
+
+// Maps each active condition to its clinical tier (from Model_Hospital_Ranking.md)
+export const CONDITION_TIERS: Record<string, { tier: Tier; label: TierLabel }> = {
+  "Edema":             { tier: 2, label: "urgent" },
+  "Consolidation":     { tier: 2, label: "urgent" },
+  "Pleural Effusion":  { tier: 3, label: "semi-urgent" },
+  "Cardiomegaly":      { tier: 3, label: "semi-urgent" },
+  "Atelectasis":       { tier: 4, label: "moderate" },
+};
 
 export interface Patient {
   id: number;
@@ -42,7 +56,7 @@ export interface Patient {
 // These match the CheXpert competition tasks and the model's
 // multi-label output: [Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion]
 // ──────────────────────────────────────────────────────────
-const ACTIVE_CONDITIONS = [
+export const ACTIVE_CONDITIONS = [
   "Atelectasis",
   "Cardiomegaly",
   "Consolidation",
@@ -244,10 +258,13 @@ function generatePatients(): Patient[] {
     const findings: Finding[] = selected.map(name => {
       const confidence = Math.round((random() * 0.7 + 0.15) * 100) / 100;
       const info = EXPLANATIONS[name];
+      const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "moderate" as TierLabel };
       return {
         pathology: name,
         confidence,
         severity: severityFromConfidence(confidence),
+        tier: tierInfo.tier,
+        tierLabel: tierInfo.label,
         explanation: info.explanation,
         clinicalNote: info.clinicalNote,
       };

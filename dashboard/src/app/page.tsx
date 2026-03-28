@@ -12,7 +12,7 @@ import UploadView from "@/components/UploadView";
 import { patients, type Finding } from "@/data/mock";
 
 export default function Home() {
-  const [activeView, setActiveView] = useState("dashboard");
+  const [activeView, setActiveView] = useState("triage");
   const [selectedPatientId, setSelectedPatientId] = useState(patients[0]?.id || 1);
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
 
