@@ -25,17 +25,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-#def main():
-    #model = get_model().to(DEVICE)
-   # print("Model loaded successfully.")
-   # print("Using device:", DEVICE)
-
-   # dummy_input = torch.randn(4, 3, IMAGE_SIZE, IMAGE_SIZE).to(DEVICE)
-   # output = model(dummy_input)
-
-   # print("Output shape:", output.shape)
-
-#if __name__ == "__main__":
-    #main()
