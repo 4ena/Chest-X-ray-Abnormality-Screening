@@ -1,14 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import XrayCard from "@/components/XrayCard";
-import RegionsChart from "@/components/RegionsChart";
-import FindingsCard from "@/components/FindingsCard";
-import RiskCard from "@/components/RiskCard";
-import SeverityDonut from "@/components/SeverityDonut";
-import PatientInfo from "@/components/PatientInfo";
-import ExplanationCard from "@/components/ExplanationCard";
+import Sidebar from "@/components/Sidebar";
+import PatientProfile from "@/components/PatientProfile";
+import MetricCards from "@/components/MetricCards";
+import DiagnoseNotes from "@/components/DiagnoseNotes";
+import XrayViewer from "@/components/XrayViewer";
 import TriageView from "@/components/TriageView";
 import CompareView from "@/components/CompareView";
 import UploadView from "@/components/UploadView";
@@ -19,8 +16,7 @@ export default function Home() {
   const [selectedPatientId, setSelectedPatientId] = useState(patients[0]?.id || 1);
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
 
-  const patient = patients.find(p => p.id === selectedPatientId) || patients[0];
-  const severityPct = Math.round(patient.severityScore * 100);
+  const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
 
   function handleSelectPatient(id: number) {
     setSelectedPatientId(id);
@@ -29,50 +25,56 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar activeView={activeView} onViewChange={setActiveView} />
+    <div className="h-screen bg-white flex overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar activeView={activeView} onViewChange={setActiveView} />
 
-      {activeView === "dashboard" && (
-        <div className="p-6">
-          <div className="grid grid-cols-4 gap-4 auto-rows-min">
-            {/* Row 1: X-ray (2 cols, 2 rows) + Regions chart + Findings */}
-            <XrayCard patient={patient} />
-            <RegionsChart />
-            <FindingsCard
-              findings={patient.findings}
-              onSelectFinding={setSelectedFinding}
-              selectedFinding={selectedFinding}
-            />
+      {/* Main content */}
+      <div className="ml-14 flex-1 flex h-screen">
+        {activeView === "dashboard" && (
+          <>
+            {/* ── Left panel (scrollable) ── */}
+            <div className="w-[320px] min-w-[320px] border-r border-border overflow-y-auto bg-white">
+              <div className="p-4 space-y-3">
+                <PatientProfile patient={patient} />
+                <MetricCards patient={patient} />
+                <DiagnoseNotes
+                  findings={patient.findings}
+                  onSelectFinding={setSelectedFinding}
+                  selectedFinding={selectedFinding}
+                />
+              </div>
+            </div>
 
-            {/* Row 2: Risk cards + Severity donut */}
-            <RiskCard
-              title={patient.findings[0]?.pathology || "Pleural Effusion"}
-              percentage={Math.round((patient.findings[0]?.confidence || 0) * 100)}
-              trend="up"
-              status={(patient.findings[0]?.confidence || 0) >= 0.6 ? "elevated" : "normal"}
-            />
-            <RiskCard
-              title={patient.findings[1]?.pathology || "Cardiomegaly"}
-              percentage={Math.round((patient.findings[1]?.confidence || 0) * 100)}
-              trend="down"
-              status={(patient.findings[1]?.confidence || 0) >= 0.6 ? "elevated" : "normal"}
-            />
+            {/* ── Right panel: X-ray viewer fills remaining space ── */}
+            <div className="flex-1 min-w-0 h-full">
+              <XrayViewer
+                patient={patient}
+                selectedFinding={selectedFinding}
+                onSelectFinding={setSelectedFinding}
+              />
+            </div>
+          </>
+        )}
 
-            {/* Row 3: Severity + Patient Info + Explanation */}
-            <SeverityDonut score={severityPct} level={patient.severityLevel} />
-            <PatientInfo patient={patient} />
-            <ExplanationCard finding={selectedFinding} />
+        {activeView === "triage" && (
+          <div className="flex-1 overflow-y-auto">
+            <TriageView onSelectPatient={handleSelectPatient} />
           </div>
-        </div>
-      )}
+        )}
 
-      {activeView === "triage" && (
-        <TriageView onSelectPatient={handleSelectPatient} />
-      )}
+        {activeView === "compare" && (
+          <div className="flex-1 overflow-y-auto">
+            <CompareView />
+          </div>
+        )}
 
-      {activeView === "compare" && <CompareView />}
-
-      {activeView === "upload" && <UploadView />}
+        {activeView === "upload" && (
+          <div className="flex-1 overflow-y-auto">
+            <UploadView />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
