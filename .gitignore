@@ -214,3 +214,8 @@ models/
 outputs/
 *.pth
 *.pt
+
+# Dashboard build artifacts
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
