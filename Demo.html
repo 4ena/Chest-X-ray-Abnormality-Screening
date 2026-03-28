@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pneumanosis — AI-Powered Chest X-Ray Triage</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cyan: #00e5ff;
+    --lime: #76ff03;
+    --orange: #ff6e40;
+    --purple: #ab47bc;
+    --bg-deep: #030810;
+    --bg-mid: #060e18;
+    --bg-light: #0a1929;
+    --text-primary: #e0e0e0;
+    --text-muted: #90a4ae;
+    --text-dim: #546e7a;
+    --text-faint: #78909c;
+    --glass-bg: rgba(255,255,255,0.03);
+    --glass-border: rgba(255,255,255,0.06);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: radial-gradient(ellipse at 20% 50%, var(--bg-light) 0%, var(--bg-mid) 50%, var(--bg-deep) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── particles ── */
+  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .particle {
+    position: absolute; border-radius: 50%;
+    background: rgba(0,229,255,0.25);
+  }
+
+  /* ── top bar ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    background: linear-gradient(180deg, rgba(6,14,24,0.92) 0%, transparent 100%);
+  }
+  .topbar-logo {
+    font: 800 13px/1 var(--mono);
+    letter-spacing: 4px; color: var(--cyan);
+  }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .btn-pause {
+    background: none; border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted); padding: 6px 14px; border-radius: 20px;
+    font: 12px var(--mono); cursor: pointer; transition: border-color 0.2s;
+  }
+  .btn-pause:hover { border-color: var(--cyan); color: var(--cyan); }
+  .slide-counter { font: 12px var(--mono); color: var(--text-dim); }
+
+  /* ── slides wrapper ── */
+  .slides-viewport {
+    position: relative; z-index: 10;
+    max-width: 960px; margin: 0 auto;
+    padding: 100px 28px 80px;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slide {
+    display: none; flex-direction: column; align-items: center;
+    width: 100%;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(.22,1,.36,1), transform 0.8s cubic-bezier(.22,1,.36,1);
+  }
+  .slide.active { display: flex; }
+  .slide.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── shared ── */
+  .tag {
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 5px; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 12px;
+  }
+  .heading {
+    font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+    font-weight: 800; text-align: center;
+    line-height: 1.15; letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .body-text {
+    font-size: 15px; color: var(--text-muted);
+    line-height: 1.7; text-align: center;
+  }
+  .glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+  }
+
+  /* ── title slide ── */
+  .title-main {
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+    background: linear-gradient(135deg, #e0e0e0 0%, var(--cyan) 50%, var(--lime) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 16px; text-align: center;
+  }
+  .title-sub {
+    font-size: clamp(1rem, 2.2vw, 1.5rem);
+    color: var(--text-muted); max-width: 600;
+    text-align: center; line-height: 1.5;
+  }
+  .title-detail {
+    margin-top: 32px; font-size: 14px;
+    letter-spacing: 6px; text-transform: uppercase;
+    color: var(--cyan); font-weight: 600;
+  }
+
+  /* ── stats row ── */
+  .stats-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; margin: 24px 0; }
+  .stat-card { padding: 28px 36px; text-align: center; min-width: 160px; }
+  .stat-value {
+    font: 900 clamp(2rem, 5vw, 3.2rem)/1 var(--mono);
+    color: var(--cyan);
+  }
+  .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
+  .source { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 16px; }
+
+  /* ── solution cards ── */
+  .cards-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .sol-card {
+    padding: 32px 28px; max-width: 280px; flex: 1 1 240px;
+    border-top: 2px solid rgba(0,229,255,0.3);
+  }
+  .sol-card .icon { font-size: 36px; margin-bottom: 12px; }
+  .sol-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .sol-card p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── pipeline ── */
+  .pipeline { display: flex; flex-direction: column; gap: 2px; max-width: 700px; width: 100%; }
+  .pipe-step {
+    display: flex; align-items: center; gap: 20px;
+    padding: 18px 24px; position: relative;
+  }
+  .pipe-num {
+    font: 900 28px/1 var(--mono);
+    color: rgba(0,229,255,0.2); min-width: 44px;
+  }
+  .pipe-name { font-size: 16px; font-weight: 700; }
+  .pipe-desc { font-size: 13px; color: var(--text-faint); margin-top: 2px; }
+
+  /* ── architecture ── */
+  .arch-layers { display: flex; flex-direction: column; gap: 12px; max-width: 700px; width: 100%; }
+  .arch-layer { padding: 20px 24px; }
+  .arch-layer-name {
+    font: 800 11px/1 var(--mono);
+    letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .arch-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+  .arch-pill {
+    font-size: 13px; color: #b0bec5;
+    padding: 4px 14px; border-radius: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* ── demo ── */
+  .demo-box {
+    padding: 40px 36px; max-width: 560px; width: 100%;
+    position: relative; overflow: hidden;
+  }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    box-shadow: 0 0 20px 4px rgba(0,229,255,0.3);
+    animation: scanDown 3s ease-in-out infinite;
+    z-index: 1;
+  }
+  .demo-step {
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 2;
+  }
+  .demo-step:last-child { border-bottom: none; }
+  .demo-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font: 800 13px var(--mono); color: var(--cyan); flex-shrink: 0;
+  }
+  .demo-step span { font-size: 15px; color: #cfd8dc; }
+
+  /* ── impact ── */
+  .impact-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .impact-card {
+    padding: 32px 40px; text-align: center; min-width: 180;
+    border-bottom: 2px solid rgba(118,255,3,0.3);
+  }
+  .impact-icon { font-size: 32px; margin-bottom: 8px; }
+  .impact-value {
+    font: 900 clamp(2.2rem, 5vw, 3.5rem)/1 var(--mono);
+    color: var(--lime);
+  }
+  .impact-label { font-size: 13px; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
+
+  /* ── team ── */
+  .team-cta {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800; text-align: center; margin-top: 32px; line-height: 1.2;
+  }
+  .team-links { display: flex; gap: 16px; margin-top: 40px; flex-wrap: wrap; justify-content: center; }
+  .team-link {
+    font: 13px var(--mono); color: var(--cyan);
+    padding: 8px 20px; border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 24px;
+  }
+
+  /* ── nav dots ── */
+  .dots {
+    position: fixed; bottom: 20px; left: 0; right: 0; z-index: 50;
+    display: flex; justify-content: center; gap: 8px;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 4px; border: none; cursor: pointer;
+    background: rgba(255,255,255,0.1); transition: all 0.3s ease;
+  }
+  .dot.active {
+    width: 28px; background: var(--cyan);
+    animation: pulse 2s infinite;
+  }
+
+  /* ── arrows ── */
+  .arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-faint); width: 44px; height: 44px; border-radius: 50%;
+    font-size: 18px; cursor: pointer; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .arrow:hover { border-color: var(--cyan); color: var(--cyan); }
+  .arrow-left { left: 16px; }
+  .arrow-right { right: 16px; }
+
+  /* ── progress bar ── */
+  .progress-track {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 3px; z-index: 100;
+    background: rgba(255,255,255,0.05);
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--lime));
+    box-shadow: 0 0 8px rgba(0,229,255,0.5);
+  }
+  .progress-fill.animating {
+    animation: progressFill 8s linear forwards;
+  }
+
+  /* ── stagger children ── */
+  .stagger > * {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .slide.visible .stagger > *:nth-child(1) { opacity: 1; transform: none; transition-delay: 0.2s; }
+  .slide.visible .stagger > *:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.35s; }
+  .slide.visible .stagger > *:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.5s; }
+  .slide.visible .stagger > *:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.65s; }
+  .slide.visible .stagger > *:nth-child(5) { opacity: 1; transform: none; transition-delay: 0.8s; }
+  .slide.visible .stagger > *:nth-child(6) { opacity: 1; transform: none; transition-delay: 0.95s; }
+
+  .slide.visible .stagger-right > * { transform: translateX(-24px); }
+  .slide.visible .stagger-right > *:nth-child(1) { opacity: 1; transform: none; transition-delay: 0.25s; }
+  .slide.visible .stagger-right > *:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.37s; }
+  .slide.visible .stagger-right > *:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.49s; }
+  .slide.visible .stagger-right > *:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.61s; }
+  .slide.visible .stagger-right > *:nth-child(5) { opacity: 1; transform: none; transition-delay: 0.73s; }
+  .stagger-right > * {
+    opacity: 0; transform: translateX(-24px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  /* ── keyframes ── */
+  @keyframes scanDown {
+    0% { top: -2px; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 1; transform: scale(1); }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+  }
+  @keyframes progressFill {
+    from { width: 0%; }
+    to { width: 100%; }
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(0,229,255,0); }
+  }
+
+  @media (max-width: 600px) {
+    .arrow { display: none; }
+    .slides-viewport { padding: 90px 18px 70px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Particles ── -->
+<div class="particles" id="particles"></div>
+
+<!-- ── Top Bar ── -->
+<div class="topbar">
+  <div class="topbar-logo">PNEUMANOSIS</div>
+  <div class="topbar-right">
+    <button class="btn-pause" id="btnPause">❚❚ PAUSE</button>
+    <span class="slide-counter" id="counter">01 / 08</span>
+  </div>
+</div>
+
+<!-- ── Slides ── -->
+<div class="slides-viewport">
+
+  <!-- 1 — Title -->
+  <div class="slide active" data-index="0">
+    <span class="tag">MLH HACKATHON 2026</span>
+    <h1 class="title-main">PNEUMANOSIS</h1>
+    <p class="title-sub">AI-Powered Chest X-Ray Triage for Radiologists</p>
+    <p class="title-detail">Prioritize · Detect · Save Time</p>
+  </div>
+
+  <!-- 2 — Problem -->
+  <div class="slide" data-index="1">
+    <span class="tag">THE PROBLEM</span>
+    <h2 class="heading">Radiologists Are Drowning</h2>
+    <div class="stats-row stagger">
+      <div class="stat-card glass">
+        <div class="stat-value">36%</div>
+        <div class="stat-label">of radiologists report burnout</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-value">~50</div>
+        <div class="stat-label">studies read per radiologist/day</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-value">24–48h</div>
+        <div class="stat-label">average non-emergency turnaround</div>
+      </div>
+    </div>
+    <p class="body-text" style="max-width:680px">Non-emergency chest X-rays pile up without intelligent prioritization. Critical findings like cardiomegaly, pleural effusion, or consolidation get buried in a first-come-first-serve queue — costing time and risking patient outcomes.</p>
+    <p class="source">ACR 2023 Workforce Survey; Defined Imaging Reports, RSNA 2022</p>
+  </div>
+
+  <!-- 3 — Solution -->
+  <div class="slide" data-index="2">
+    <span class="tag">OUR SOLUTION</span>
+    <h2 class="heading">Intelligent Triage, Instantly</h2>
+    <div class="cards-row stagger">
+      <div class="sol-card glass">
+        <div class="icon">🫁</div>
+        <h3>AI-Sorted Queue</h3>
+        <p>Chest X-rays are automatically ranked by pathology severity using our custom DenseNet121 model.</p>
+      </div>
+      <div class="sol-card glass">
+        <div class="icon">📊</div>
+        <h3>Radiologist Dashboard</h3>
+        <p>Clean, intuitive interface showing detected pathologies, confidence scores, and patient priority.</p>
+      </div>
+      <div class="sol-card glass">
+        <div class="icon">⬆️</div>
+        <h3>Upload & Compare</h3>
+        <p>Technicians upload new X-rays and instantly see queue position relative to existing patients.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 — Tech Pipeline -->
+  <div class="slide" data-index="3">
+    <span class="tag">UNDER THE HOOD</span>
+    <h2 class="heading">The ML Pipeline</h2>
+    <div class="pipeline stagger-right">
+      <div class="pipe-step glass">
+        <span class="pipe-num">01</span>
+        <div><div class="pipe-name">CheXpert v1.0-small</div><div class="pipe-desc">224K+ labeled chest X-rays across 14 pathologies</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">02</span>
+        <div><div class="pipe-name">PyTorch Augmentation</div><div class="pipe-desc">Rotation, flipping, color jitter, elastic transforms</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">03</span>
+        <div><div class="pipe-name">Gemini Synthetic Data</div><div class="pipe-desc">Google Gemini generates edge-case scenarios validated by SoTA models</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">04</span>
+        <div><div class="pipe-name">DenseNet121 Transfer Learning</div><div class="pipe-desc">Pre-trained on ImageNet, fine-tuned on augmented CheXpert</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">05</span>
+        <div><div class="pipe-name">DeepAUC v1 Ensemble</div><div class="pipe-desc">State-of-the-art validation ensuring clinical-grade AUC scores</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 — Architecture -->
+  <div class="slide" data-index="4">
+    <span class="tag">SYSTEM DESIGN</span>
+    <h2 class="heading">How It All Connects</h2>
+    <div class="arch-layers stagger">
+      <div class="arch-layer glass" style="border-left:3px solid var(--cyan)">
+        <div class="arch-layer-name" style="color:var(--cyan)">Frontend</div>
+        <div class="arch-pills"><span class="arch-pill">React Dashboard</span><span class="arch-pill">Real-time Queue</span><span class="arch-pill">X-ray Viewer</span></div>
+      </div>
+      <div class="arch-layer glass" style="border-left:3px solid var(--lime)">
+        <div class="arch-layer-name" style="color:var(--lime)">Backend</div>
+        <div class="arch-pills"><span class="arch-pill">FastAPI / Flask</span><span class="arch-pill">Patient Queue Engine</span><span class="arch-pill">Auth & RBAC</span></div>
+      </div>
+      <div class="arch-layer glass" style="border-left:3px solid var(--orange)">
+        <div class="arch-layer-name" style="color:var(--orange)">ML Engine</div>
+        <div class="arch-pills"><span class="arch-pill">DenseNet121 Inference</span><span class="arch-pill">Pathology Classifier</span><span class="arch-pill">Confidence Scoring</span></div>
+      </div>
+      <div class="arch-layer glass" style="border-left:3px solid var(--purple)">
+        <div class="arch-layer-name" style="color:var(--purple)">Data Layer</div>
+        <div class="arch-pills"><span class="arch-pill">CheXpert Dataset</span><span class="arch-pill">Gemini Synth Pipeline</span><span class="arch-pill">DeepAUC Validation</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 — Demo -->
+  <div class="slide" data-index="5">
+    <span class="tag">LIVE DEMO</span>
+    <h2 class="heading">See It In Action</h2>
+    <div class="demo-box glass">
+      <div class="scan-line"></div>
+      <div class="stagger-right" style="position:relative;z-index:2">
+        <div class="demo-step"><div class="demo-num">1</div><span>Upload a chest X-ray image</span></div>
+        <div class="demo-step"><div class="demo-num">2</div><span>AI detects pathologies in seconds</span></div>
+        <div class="demo-step"><div class="demo-num">3</div><span>Patient is auto-placed in priority queue</span></div>
+        <div class="demo-step"><div class="demo-num">4</div><span>Radiologist reviews sorted dashboard</span></div>
+        <div class="demo-step"><div class="demo-num">5</div><span>One-click approve, flag, or escalate</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 — Impact -->
+  <div class="slide" data-index="6">
+    <span class="tag">WHY IT MATTERS</span>
+    <h2 class="heading">The Impact</h2>
+    <div class="impact-row stagger">
+      <div class="impact-card glass">
+        <div class="impact-icon">⚡</div>
+        <div class="impact-value">5×</div>
+        <div class="impact-label">Faster triage vs. manual review</div>
+      </div>
+      <div class="impact-card glass">
+        <div class="impact-icon">🔬</div>
+        <div class="impact-value">14</div>
+        <div class="impact-label">Pathologies detected simultaneously</div>
+      </div>
+      <div class="impact-card glass">
+        <div class="impact-icon">🛡️</div>
+        <div class="impact-value">0</div>
+        <div class="impact-label">Missed critical findings in queue</div>
+      </div>
+    </div>
+    <p class="body-text" style="max-width:640px;margin-top:28px">Pneumanosis doesn't replace radiologists — it gives them superpowers. By surfacing the most urgent cases first, we reduce burnout, improve throughput, and ensure no critical finding gets lost in the queue.</p>
+  </div>
+
+  <!-- 8 — Team -->
+  <div class="slide" data-index="7" style="justify-content:center;min-height:70vh">
+    <span class="tag">THE TEAM</span>
+    <h2 class="heading">Built in 36 Hours</h2>
+    <p class="team-cta">Thank you. Questions?</p>
+    <div class="team-links">
+      <span class="team-link">github.com/pneumanosis</span>
+      <span class="team-link">devpost.com/pneumanosis</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Nav Arrows ── -->
+<button class="arrow arrow-left" id="arrowLeft">‹</button>
+<button class="arrow arrow-right" id="arrowRight">›</button>
+
+<!-- ── Dots ── -->
+<div class="dots" id="dots"></div>
+
+<!-- ── Progress Bar ── -->
+<div class="progress-track">
+  <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<script>
+(function() {
+  const AUTOPLAY_MS = 8000;
+  const TOTAL = 8;
+  let current = 0;
+  let paused = false;
+  let timer = null;
+
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const btnPause = document.getElementById('btnPause');
+  const progressFill = document.getElementById('progressFill');
+
+  /* ── particles ── */
+  const particlesEl = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 3 + 1;
+    p.style.cssText = `
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      width:${size}px; height:${size}px;
+      animation: floatUp ${Math.random()*20+15}s linear ${Math.random()*-20}s infinite;
+    `;
+    particlesEl.appendChild(p);
+  }
+
+  /* ── dots ── */
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  }
+
+  function updateDots() {
+    dotsEl.querySelectorAll('.dot').forEach((d, i) => {
+      d.className = 'dot' + (i === current ? ' active' : '');
+    });
+  }
+
+  function updateCounter() {
+    counter.textContent = `${String(current + 1).padStart(2, '0')} / ${String(TOTAL).padStart(2, '0')}`;
+  }
+
+  function resetProgress() {
+    progressFill.classList.remove('animating');
+    void progressFill.offsetWidth; // reflow
+    if (!paused) progressFill.classList.add('animating');
+  }
+
+  function showSlide(index) {
+    slides.forEach(s => {
+      s.classList.remove('active', 'visible');
+    });
+    slides[index].classList.add('active');
+    // trigger reflow then add visible for transition
+    void slides[index].offsetWidth;
+    requestAnimationFrame(() => slides[index].classList.add('visible'));
+    updateDots();
+    updateCounter();
+    resetProgress();
+  }
+
+  function goTo(index) {
+    // fade out current
+    slides[current].classList.remove('visible');
+    clearTimeout(timer);
+    setTimeout(() => {
+      current = index;
+      showSlide(current);
+      scheduleNext();
+    }, 400);
+  }
+
+  function next() { goTo((current + 1) % TOTAL); }
+  function prev() { goTo((current - 1 + TOTAL) % TOTAL); }
+
+  function scheduleNext() {
+    clearTimeout(timer);
+    if (!paused) timer = setTimeout(next, AUTOPLAY_MS);
+  }
+
+  /* ── controls ── */
+  document.getElementById('arrowRight').addEventListener('click', next);
+  document.getElementById('arrowLeft').addEventListener('click', prev);
+
+  btnPause.addEventListener('click', () => {
+    paused = !paused;
+    btnPause.textContent = paused ? '▶ PLAY' : '❚❚ PAUSE';
+    if (paused) {
+      clearTimeout(timer);
+      progressFill.classList.remove('animating');
+    } else {
+      resetProgress();
+      scheduleNext();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    if (e.key === 'p') {
+      paused = !paused;
+      btnPause.textContent = paused ? '▶ PLAY' : '❚❚ PAUSE';
+      if (paused) { clearTimeout(timer); progressFill.classList.remove('animating'); }
+      else { resetProgress(); scheduleNext(); }
+    }
+  });
+
+  /* ── init ── */
+  showSlide(0);
+  scheduleNext();
+})();
+</script>
+</body>
+</html>
