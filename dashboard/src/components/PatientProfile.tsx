@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Phone, Mail, Calendar, User, Eye, FileText } from "lucide-react";
+import { MoreHorizontal, Phone, Mail, Calendar, User, Eye, FileText, ClipboardList, Images } from "lucide-react";
 import type { Patient } from "@/data/mock";
 
 interface PatientProfileProps {
@@ -90,7 +90,17 @@ export default function PatientProfile({ patient }: PatientProfileProps) {
         </div>
       </div>
 
-      {/* Medical history (inspired by DocPort) */}
+      {/* Clinical indication */}
+      <div className="mb-4 pb-4 border-b border-border">
+        <p className="text-[11px] text-muted font-medium mb-2 flex items-center gap-1.5">
+          <ClipboardList size={11} /> Reason for Exam
+        </p>
+        <div className="bg-amber-50/50 border border-amber-100 rounded-lg px-3 py-2">
+          <p className="text-xs font-medium text-foreground leading-relaxed">{patient.reasonForExam}</p>
+        </div>
+      </div>
+
+      {/* Medical history */}
       <div>
         <p className="text-[11px] text-muted font-medium mb-2.5 flex items-center gap-1.5">
           <FileText size={11} /> Medical History
@@ -105,6 +115,19 @@ export default function PatientProfile({ patient }: PatientProfileProps) {
             <p className="text-xs font-medium text-foreground">
               {patient.findings.length} abnormalit{patient.findings.length === 1 ? "y" : "ies"} flagged
             </p>
+          </div>
+          <div className="bg-panel-bg rounded-lg px-3 py-2 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] text-muted">Prior Studies</p>
+              <p className="text-xs font-medium text-foreground">
+                {patient.priorStudies === 0
+                  ? "No prior imaging on file"
+                  : `${patient.priorStudies} prior chest X-ray${patient.priorStudies > 1 ? "s" : ""} on file`}
+              </p>
+            </div>
+            {patient.priorStudies > 0 && (
+              <Images size={14} className="text-accent" />
+            )}
           </div>
         </div>
       </div>

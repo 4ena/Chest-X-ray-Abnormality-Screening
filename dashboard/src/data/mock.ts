@@ -40,6 +40,8 @@ export interface Patient {
   admissionDate: string;
   view: "Frontal" | "Lateral";
   apPa: "AP" | "PA";
+  reasonForExam: string;
+  priorStudies: number;
   findings: Finding[];
   severityScore: number;
   severityLevel: "critical" | "moderate" | "mild" | "normal";
@@ -222,6 +224,22 @@ function severityLevel(score: number): Patient["severityLevel"] {
 // Use only active conditions for patient generation
 const CONDITIONS = ACTIVE_CONDITIONS;
 
+// Clinical indications — why the ordering doctor requested the X-ray
+const REASONS_FOR_EXAM = [
+  "Shortness of breath, rule out CHF",
+  "Persistent cough x 3 weeks",
+  "Chest pain on exertion",
+  "Post-operative evaluation",
+  "Fever and productive cough, rule out pneumonia",
+  "Trauma — rule out rib fracture/pneumothorax",
+  "Pre-operative clearance",
+  "Worsening dyspnea, known COPD",
+  "Routine follow-up, prior pleural effusion",
+  "Syncope episode, evaluate cardiac silhouette",
+  "Weight loss and night sweats, rule out TB/mass",
+  "New onset peripheral edema",
+];
+
 const FIRST_NAMES = ["James", "Maria", "Robert", "Linda", "Michael", "Patricia", "William", "Elizabeth", "David", "Jennifer", "Richard", "Susan", "Joseph", "Margaret", "Thomas", "Dorothy", "Charles", "Karen", "Daniel", "Nancy"];
 const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"];
 
@@ -288,6 +306,8 @@ function generatePatients(): Patient[] {
       admissionDate: `2026-03-${String(Math.floor(random() * 28) + 1).padStart(2, "0")}`,
       view: random() > 0.14 ? "Frontal" : "Lateral",
       apPa: random() > 0.28 ? "AP" : "PA",
+      reasonForExam: REASONS_FOR_EXAM[Math.floor(random() * REASONS_FOR_EXAM.length)],
+      priorStudies: Math.floor(random() * 5),
       findings,
       severityScore: score,
       severityLevel: severityLevel(score),
