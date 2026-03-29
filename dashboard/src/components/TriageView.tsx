@@ -27,7 +27,7 @@ function timeSinceAdmission(dateStr: string): string {
   return `${days}d`;
 }
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 function exportCSV() {
   const headers = ["ID", "Name", "Age", "Sex", "Tier", "Top Finding", "Confidence", "Admitted"];
@@ -104,7 +104,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   <Shield size={14} className="text-gray-400" />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{patients.length}</p>
+              <p className="text-4xl font-bold text-gray-900">{patients.length}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp size={11} className="text-emerald-500" />
                 <span className="text-[11px] text-emerald-500 font-medium">12%</span>
@@ -120,7 +120,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   <AlertTriangle size={14} className="text-red-500" />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-red-600">{stat}</p>
+              <p className="text-4xl font-bold text-red-600">{stat}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp size={11} className="text-red-400" />
                 <span className="text-[11px] text-red-400 font-medium">{Math.round((stat / patients.length) * 100)}%</span>
@@ -136,7 +136,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   <Activity size={14} className="text-amber-500" />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-amber-600">{priority}</p>
+              <p className="text-4xl font-bold text-amber-600">{priority}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingDown size={11} className="text-amber-400" />
                 <span className="text-[11px] text-amber-400 font-medium">{Math.round((priority / patients.length) * 100)}%</span>

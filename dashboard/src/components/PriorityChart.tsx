@@ -22,7 +22,7 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
   const idx = item.payload.index;
 
   return (
-    <div className="bg-gray-900 text-white rounded-lg px-3 py-2 text-xs shadow-lg max-w-[200px]">
+    <div className="bg-gray-900 text-white rounded-lg px-3 py-2 text-xs shadow-xl border-0 outline-0" style={{ border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}>
       <p className="font-semibold">{LABELS[idx]}: {item.value} patients</p>
       <p className="text-gray-300 mt-0.5 leading-relaxed">{DESCRIPTIONS[idx]}</p>
     </div>
@@ -66,7 +66,7 @@ export default function PriorityChart({ stat, priority, routine }: PriorityChart
                   <Cell key={i} fill={COLORS[i]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: "none", border: "none" }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

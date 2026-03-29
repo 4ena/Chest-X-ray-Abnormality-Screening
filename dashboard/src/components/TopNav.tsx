@@ -23,8 +23,9 @@ export default function TopNav({ activeView, onViewChange }: TopNavProps) {
         <div className="flex items-center gap-8">
           <button onClick={() => onViewChange("triage")} className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
-                <path d="M14 6v16M8 10l6-4 6 4M8 18l6 4 6-4" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C8 2 4 6 4 10c0 2.5 1.5 5 4 6.5V20a1 1 0 001 1h6a1 1 0 001-1v-3.5c2.5-1.5 4-4 4-6.5 0-4-4-8-8-8z" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9 21h6M10 17h4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
             <span className="text-lg font-bold text-gray-900 tracking-tight">{APP_NAME}</span>
