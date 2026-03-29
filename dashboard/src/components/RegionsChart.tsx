@@ -2,8 +2,12 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
 import { regionData } from "@/data/mock";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function RegionsChart() {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
     <div className="bg-card rounded-2xl p-5 border border-border">
       <div className="flex items-center justify-between mb-4">
@@ -21,21 +25,21 @@ export default function RegionsChart() {
       </div>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={regionData} barGap={4}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f5" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#1e2231" : "#f0f0f5"} vertical={false} />
           <XAxis
             dataKey="region"
-            tick={{ fontSize: 11, fill: "#8b8fa3" }}
+            tick={{ fontSize: 11, fill: isDark ? "#6b7280" : "#8b8fa3" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: "#8b8fa3" }}
+            tick={{ fontSize: 11, fill: isDark ? "#6b7280" : "#8b8fa3" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={v => `${v}%`}
           />
           <Bar dataKey="ventilation" fill="#4A6CF7" radius={[4, 4, 0, 0]} barSize={20} />
-          <Bar dataKey="inflammation" fill="#B8D4FF" radius={[4, 4, 0, 0]} barSize={20} />
+          <Bar dataKey="inflammation" fill={isDark ? "#5b8fd9" : "#B8D4FF"} radius={[4, 4, 0, 0]} barSize={20} />
         </BarChart>
       </ResponsiveContainer>
     </div>

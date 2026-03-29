@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { MoreHorizontal, TrendingUp, TrendingDown, Activity, Wind, Flame } from "lucide-react";
 import type { Patient } from "@/data/mock";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface MetricCardsProps {
   patient: Patient;
@@ -11,6 +12,8 @@ interface MetricCardsProps {
 /* ── Severity Score Card with donut ── */
 function SeverityCard({ score, level }: { score: number; level: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -25,14 +28,14 @@ function SeverityCard({ score, level }: { score: number; level: string }) {
 
     const cx = 36, cy = 36, r = 27, lw = 5;
     const color =
-      level === "critical" ? "#ef4444" :
-      level === "moderate" ? "#f59e0b" :
-      level === "mild" ? "#eab308" : "#22c55e";
+      level === "critical" ? (isDark ? "#f87171" : "#ef4444") :
+      level === "moderate" ? (isDark ? "#fbbf24" : "#f59e0b") :
+      level === "mild" ? (isDark ? "#facc15" : "#eab308") : (isDark ? "#4ade80" : "#22c55e");
 
     // Background ring
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = "#f1f3f8";
+    ctx.strokeStyle = isDark ? "#1e2231" : "#f1f3f8";
     ctx.lineWidth = lw;
     ctx.stroke();
 
@@ -47,15 +50,15 @@ function SeverityCard({ score, level }: { score: number; level: string }) {
     ctx.stroke();
 
     // Center text
-    ctx.fillStyle = "#1a1f36";
+    ctx.fillStyle = isDark ? "#e5e7eb" : "#1a1f36";
     ctx.font = "bold 15px system-ui";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(`${score}`, cx, cy - 3);
-    ctx.fillStyle = "#8b8fa3";
+    ctx.fillStyle = isDark ? "#6b7280" : "#8b8fa3";
     ctx.font = "8px system-ui";
     ctx.fillText("Score", cx, cy + 11);
-  }, [score, level]);
+  }, [score, level, isDark]);
 
   const color =
     level === "critical" ? "text-critical" :
@@ -63,7 +66,7 @@ function SeverityCard({ score, level }: { score: number; level: string }) {
     level === "mild" ? "text-mild" : "text-normal";
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-border">
+    <div className="bg-card rounded-2xl p-4 border border-border">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs text-muted font-medium">Severity Score</p>
         <button className="text-muted hover:text-foreground"><MoreHorizontal size={14} /></button>
@@ -82,6 +85,8 @@ function SeverityCard({ score, level }: { score: number; level: string }) {
 /* ── Lung Index Card ── */
 function LungIndexCard({ value, inflammation }: { value: number; inflammation: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -101,19 +106,19 @@ function LungIndexCard({ value, inflammation }: { value: number; inflammation: s
       const h = 8 + Math.random() * 26;
       const x = startX + i * (barW + gap);
       const y = 38 - h;
-      ctx.fillStyle = i < Math.round(value / 14) ? "#4a6cf7" : "#e8ecf4";
+      ctx.fillStyle = i < Math.round(value / 14) ? "#4a6cf7" : (isDark ? "#1e2231" : "#e8ecf4");
       ctx.beginPath();
       ctx.roundRect(x, y, barW, h, 2);
       ctx.fill();
     }
-  }, [value]);
+  }, [value, isDark]);
 
   const infColor =
     inflammation === "High" ? "text-critical bg-critical-bg" :
     inflammation === "Medium" ? "text-moderate bg-moderate-bg" : "text-normal bg-normal-bg";
 
   return (
-    <div className="bg-white rounded-2xl p-3.5 border border-border">
+    <div className="bg-card rounded-2xl p-3.5 border border-border">
       <div className="flex items-center justify-between mb-1">
         <p className="text-[10px] text-muted font-medium flex items-center gap-1"><Activity size={10} /> Lung Index</p>
         <button className="text-muted hover:text-foreground"><MoreHorizontal size={12} /></button>
@@ -130,6 +135,8 @@ function LungIndexCard({ value, inflammation }: { value: number; inflammation: s
 /* ── Ventilation Card ── */
 function VentilationCard({ status }: { status: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -166,7 +173,7 @@ function VentilationCard({ status }: { status: string }) {
     ctx.lineTo(0, 35);
     ctx.closePath();
     const grad = ctx.createLinearGradient(0, 0, 0, 35);
-    grad.addColorStop(0, `rgba(${baseColor},0.12)`);
+    grad.addColorStop(0, `rgba(${baseColor},${isDark ? 0.2 : 0.12})`);
     grad.addColorStop(1, `rgba(${baseColor},0)`);
     ctx.fillStyle = grad;
     ctx.fill();
@@ -178,7 +185,10 @@ function VentilationCard({ status }: { status: string }) {
     ctx.arc(lastX - 2, lastY, 3, 0, Math.PI * 2);
     ctx.fillStyle = `rgb(${baseColor})`;
     ctx.fill();
-  }, [status]);
+    ctx.strokeStyle = isDark ? "#151821" : "#fff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }, [status, isDark]);
 
   const statusColor =
     status === "Compromised" ? "text-critical" :
@@ -187,7 +197,7 @@ function VentilationCard({ status }: { status: string }) {
   const trending = status === "Healthy";
 
   return (
-    <div className="bg-white rounded-2xl p-3.5 border border-border">
+    <div className="bg-card rounded-2xl p-3.5 border border-border">
       <div className="flex items-center justify-between mb-1">
         <p className="text-[10px] text-muted font-medium flex items-center gap-1"><Wind size={10} /> Ventilation</p>
         <button className="text-muted hover:text-foreground"><MoreHorizontal size={12} /></button>

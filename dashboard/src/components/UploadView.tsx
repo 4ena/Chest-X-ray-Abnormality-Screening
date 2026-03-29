@@ -101,12 +101,12 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
   return (
     <div className="max-w-screen-2xl mx-auto px-8 py-8 h-[calc(100vh-64px)] overflow-y-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Upload X-ray</h1>
-        <p className="text-sm text-gray-400 mt-1">Analyze a new chest radiograph</p>
+        <h1 className="text-2xl font-bold text-foreground">Upload X-ray</h1>
+        <p className="text-sm text-muted mt-1">Analyze a new chest radiograph</p>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">
+        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 text-sm text-red-600 dark:text-red-400">
           {error}
         </div>
       )}
@@ -121,36 +121,36 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
               onDrop={e => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); }}
               onClick={() => inputRef.current?.click()}
               className={`rounded-2xl border-2 border-dashed p-16 text-center cursor-pointer transition-all ${
-                dragging ? "border-gray-900 bg-gray-50 scale-[1.01]" : "border-gray-200 hover:border-gray-400 bg-white"
+                dragging ? "border-accent bg-panel-bg scale-[1.01]" : "border-border hover:border-muted bg-card"
               }`}
             >
-              <Upload size={40} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-base font-semibold text-gray-900 mb-1">Drop chest X-ray here</h3>
-              <p className="text-sm text-gray-400">or click to browse (PNG, JPG, DICOM)</p>
+              <Upload size={40} className="mx-auto mb-4 text-muted/50" />
+              <h3 className="text-base font-semibold text-foreground mb-1">Drop chest X-ray here</h3>
+              <p className="text-sm text-muted">or click to browse (PNG, JPG, DICOM)</p>
               <input ref={inputRef} type="file" accept=".png,.jpg,.jpeg,.dcm" hidden onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             </div>
 
             <AnimatePresence>
               {analyzing && (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="mt-6 bg-white rounded-2xl border border-gray-100 p-6 text-center">
-                  <Loader2 size={24} className="mx-auto mb-2 animate-spin text-gray-400" />
-                  <p className="text-sm font-medium text-gray-900">Analyzing {fileName}...</p>
-                  <p className="text-xs text-gray-400 mt-1">Sending to API for inference</p>
+                  className="mt-6 bg-card rounded-2xl border border-border p-6 text-center">
+                  <Loader2 size={24} className="mx-auto mb-2 animate-spin text-muted" />
+                  <p className="text-sm font-medium text-foreground">Analyzing {fileName}...</p>
+                  <p className="text-xs text-muted mt-1">Sending to API for inference</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           {/* Patient info form */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <User size={14} className="text-gray-400" />
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <User size={14} className="text-muted" />
               Patient Information
             </h3>
 
             <div className="mb-4">
-              <label className="text-xs text-gray-400 block mb-1.5">Assign to Existing Patient</label>
+              <label className="text-xs text-muted block mb-1.5">Assign to Existing Patient</label>
               <div className="relative">
                 <select value={selectedPatient}
                   onChange={(e) => {
@@ -160,41 +160,41 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
                       if (p) { setPatientName(p.name); setPatientAge(String(p.age)); setPatientSex(p.sex); }
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10 appearance-none">
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10 appearance-none">
                   <option value="">— New Patient —</option>
                   {existingPatients.map(p => (
                     <option key={p.id} value={p.id}>{p.name} (P{String(p.id).padStart(3, "0")})</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
               </div>
             </div>
 
-            <div className="border-t border-gray-100 pt-4 space-y-3">
+            <div className="border-t border-border pt-4 space-y-3">
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Full Name <span className="text-red-400">*</span></label>
+                <label className="text-xs text-muted block mb-1">Full Name <span className="text-red-400">*</span></label>
                 <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Enter patient name"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/10" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
+                  <label className="text-xs text-muted block mb-1">Age <span className="text-red-400">*</span></label>
                   <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)} placeholder="Age"
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/10" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
+                  <label className="text-xs text-muted block mb-1">Sex <span className="text-red-400">*</span></label>
                   <select value={patientSex} onChange={e => setPatientSex(e.target.value as "Male" | "Female")}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10">
                     <option>Male</option>
                     <option>Female</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Reason for Exam</label>
+                <label className="text-xs text-muted block mb-1">Reason for Exam</label>
                 <input type="text" value={reasonForExam} onChange={e => setReasonForExam(e.target.value)} placeholder="e.g., Shortness of breath, r/o CHF"
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/10" />
               </div>
             </div>
           </div>
@@ -235,36 +235,36 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
           {/* Right: results + patient info + save */}
           <div className="overflow-y-auto space-y-4">
             {/* Summary */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between">
+            <div className="bg-card rounded-2xl border border-border p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {highestTier === 2 ? (
-                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center"><AlertTriangle size={16} className="text-red-500" /></div>
+                  <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center"><AlertTriangle size={16} className="text-red-500" /></div>
                 ) : (
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center"><Activity size={16} className="text-amber-500" /></div>
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center"><Activity size={16} className="text-amber-500" /></div>
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{detectedFindings.length} finding{detectedFindings.length !== 1 ? "s" : ""} detected</p>
+                  <p className="text-sm font-semibold text-foreground">{detectedFindings.length} finding{detectedFindings.length !== 1 ? "s" : ""} detected</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className={`text-[10px] font-medium ${usingMock ? "text-amber-500" : "text-emerald-600"}`}>
+                    <span className={`text-[10px] font-medium ${usingMock ? "text-amber-500" : "text-emerald-600 dark:text-emerald-400"}`}>
                       {usingMock ? "Mock predictions (no model loaded)" : "Real model inference"}
                     </span>
-                    {analysisTime && <span className="text-[10px] text-gray-400">{analysisTime}ms</span>}
+                    {analysisTime && <span className="text-[10px] text-muted">{analysisTime}ms</span>}
                   </div>
                 </div>
               </div>
               {savedId && onViewTriage && (
                 <button onClick={onViewTriage}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors">
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-background text-xs font-medium hover:opacity-90 transition-colors">
                   View in Queue <ArrowRight size={12} />
                 </button>
               )}
             </div>
 
             {/* Condition bars */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="bg-card rounded-2xl border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <FileImage size={14} className="text-gray-400" />
-                <h3 className="text-sm font-semibold text-gray-900">Analysis Results</h3>
+                <FileImage size={14} className="text-muted" />
+                <h3 className="text-sm font-semibold text-foreground">Analysis Results</h3>
               </div>
               <div className="space-y-2.5">
                 {results.map((r, i) => {
@@ -273,17 +273,17 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
                   const detected = pct >= 50;
                   return (
                     <div key={r.pathology} className={`flex items-center gap-3 ${!detected ? "opacity-40" : ""}`}>
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: detected ? color : "#e5e7eb" }} />
-                      <span className={`text-sm w-28 ${detected ? "font-medium text-gray-900" : "text-gray-400"}`}>{r.pathology}</span>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: detected ? color : "var(--border)" }} />
+                      <span className={`text-sm w-28 ${detected ? "font-medium text-foreground" : "text-muted"}`}>{r.pathology}</span>
                       {detected ? (
                         <span className="text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded w-16 text-center"
                           style={{ color, backgroundColor: `${color}12` }}>{TIER_LABELS[r.tier]}</span>
                       ) : <span className="w-16" />}
-                      <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="flex-1 h-2 rounded-full bg-accent-light overflow-hidden">
                         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6, delay: i * 0.1 }}
-                          className="h-full rounded-full" style={{ backgroundColor: detected ? color : "#e5e7eb" }} />
+                          className="h-full rounded-full" style={{ backgroundColor: detected ? color : "var(--border)" }} />
                       </div>
-                      <span className="text-sm font-semibold w-10 text-right" style={{ color: detected ? color : "#d1d5db" }}>{pct}%</span>
+                      <span className="text-sm font-semibold w-10 text-right" style={{ color: detected ? color : "var(--muted)" }}>{pct}%</span>
                     </div>
                   );
                 })}
@@ -291,43 +291,43 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
             </div>
 
             {/* Patient details — editable before save */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <User size={14} className="text-gray-400" /> Patient Details
+            <div className="bg-card rounded-2xl border border-border p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <User size={14} className="text-muted" /> Patient Details
               </h3>
               {!savedId ? (
                 <>
                   <div className="space-y-3 mb-4">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Name <span className="text-red-400">*</span></label>
+                      <label className="text-xs text-muted block mb-1">Name <span className="text-red-400">*</span></label>
                       <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Patient name"
-                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-border bg-card text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/10" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
+                        <label className="text-xs text-muted block mb-1">Age <span className="text-red-400">*</span></label>
                         <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)}
-                          className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                          className="w-full px-3 py-1.5 text-sm rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10" />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
+                        <label className="text-xs text-muted block mb-1">Sex <span className="text-red-400">*</span></label>
                         <select value={patientSex} onChange={e => setPatientSex(e.target.value as "Male" | "Female")}
-                          className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                          className="w-full px-3 py-1.5 text-sm rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-accent/10">
                           <option>Male</option>
                           <option>Female</option>
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Reason for Exam</label>
+                      <label className="text-xs text-muted block mb-1">Reason for Exam</label>
                       <input type="text" value={reasonForExam} onChange={e => setReasonForExam(e.target.value)} placeholder="Clinical indication"
-                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-border bg-card text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent/10" />
                     </div>
                   </div>
                   <button
                     onClick={handleSave}
                     disabled={saving || !patientName.trim() || !patientAge.trim()}
-                    className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-2.5 rounded-xl bg-accent text-background text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                     {saving ? "Saving..." : "Save Patient Record"}
@@ -335,12 +335,12 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
                 </>
               ) : (
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{patientName}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Age</span><span className="font-medium text-gray-900">{patientAge}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-400">Sex</span><span className="font-medium text-gray-900">{patientSex}</span></div>
-                  {reasonForExam && <div className="flex justify-between"><span className="text-gray-400">Reason</span><span className="font-medium text-gray-900 text-right max-w-48">{reasonForExam}</span></div>}
-                  <div className="flex justify-between"><span className="text-gray-400">Patient ID</span><span className="font-medium text-emerald-600">{savedId}</span></div>
-                  <div className="mt-3 p-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium flex items-center gap-1.5">
+                  <div className="flex justify-between"><span className="text-muted">Name</span><span className="font-medium text-foreground">{patientName}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Age</span><span className="font-medium text-foreground">{patientAge}</span></div>
+                  <div className="flex justify-between"><span className="text-muted">Sex</span><span className="font-medium text-foreground">{patientSex}</span></div>
+                  {reasonForExam && <div className="flex justify-between"><span className="text-muted">Reason</span><span className="font-medium text-foreground text-right max-w-48">{reasonForExam}</span></div>}
+                  <div className="flex justify-between"><span className="text-muted">Patient ID</span><span className="font-medium text-emerald-600 dark:text-emerald-400">{savedId}</span></div>
+                  <div className="mt-3 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5">
                     <Check size={12} /> Patient saved successfully
                   </div>
                 </div>
@@ -348,7 +348,7 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
             </div>
 
             <button onClick={reset}
-              className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              className="w-full py-2.5 rounded-xl border border-border text-sm font-medium text-muted hover:bg-panel-bg transition-colors">
               Upload Another X-ray
             </button>
           </div>

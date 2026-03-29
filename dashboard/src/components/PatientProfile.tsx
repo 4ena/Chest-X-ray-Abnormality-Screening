@@ -19,7 +19,7 @@ export default function PatientProfile({ patient }: PatientProfileProps) {
     patient.riskLevel === "Medium" ? "text-moderate bg-moderate-bg" : "text-normal bg-normal-bg";
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-border">
+    <div className="bg-card rounded-2xl p-5 border border-border">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ export default function PatientProfile({ patient }: PatientProfileProps) {
         <p className="text-[11px] text-muted font-medium mb-2 flex items-center gap-1.5">
           <ClipboardList size={11} /> Reason for Exam
         </p>
-        <div className="bg-amber-50/50 border border-amber-100 rounded-lg px-3 py-2">
+        <div className="bg-moderate-bg border border-moderate/20 rounded-lg px-3 py-2">
           <p className="text-xs font-medium text-foreground leading-relaxed">{patient.reasonForExam}</p>
         </div>
       </div>

@@ -38,7 +38,7 @@ export default function FindingsCard({ findings, onSelectFinding, selectedFindin
               className={`w-full text-left rounded-xl p-3 transition-all duration-200 border ${
                 isSelected
                   ? "border-accent bg-accent-light shadow-sm"
-                  : "border-transparent hover:bg-background"
+                  : "border-transparent hover:bg-panel-bg"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -48,8 +48,8 @@ export default function FindingsCard({ findings, onSelectFinding, selectedFindin
                 {f.severity !== "critical" && (
                   <Info size={14} className="text-muted flex-shrink-0" />
                 )}
-                <span className="text-sm font-medium flex-1">{f.pathology}</span>
-                <div className="w-24 h-1.5 rounded-full bg-background overflow-hidden">
+                <span className="text-sm font-medium text-foreground flex-1">{f.pathology}</span>
+                <div className="w-24 h-1.5 rounded-full bg-accent-light overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}

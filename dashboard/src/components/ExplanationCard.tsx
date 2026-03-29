@@ -30,7 +30,7 @@ export default function ExplanationCard({ finding }: ExplanationCardProps) {
                 finding.severity === "critical" ? "bg-critical" :
                 finding.severity === "moderate" ? "bg-moderate" : "bg-normal"
               }`}></span>
-              <span className="text-sm font-semibold">{finding.pathology}</span>
+              <span className="text-sm font-semibold text-foreground">{finding.pathology}</span>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                 finding.severity === "critical" ? "bg-critical-bg text-critical" :
                 finding.severity === "moderate" ? "bg-moderate-bg text-moderate" :

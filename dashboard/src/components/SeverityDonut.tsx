@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface SeverityDonutProps {
   score: number;
@@ -9,6 +10,8 @@ interface SeverityDonutProps {
 
 export default function SeverityDonut({ score, level }: SeverityDonutProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -26,7 +29,7 @@ export default function SeverityDonut({ score, level }: SeverityDonutProps) {
     // Background ring
     ctx.beginPath();
     ctx.arc(center, center, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = "#f0f0f5";
+    ctx.strokeStyle = isDark ? "#1e2231" : "#f0f0f5";
     ctx.lineWidth = lineWidth;
     ctx.lineCap = "round";
     ctx.stroke();
@@ -36,9 +39,9 @@ export default function SeverityDonut({ score, level }: SeverityDonutProps) {
     const startAngle = -Math.PI / 2;
     const endAngle = startAngle + pct * Math.PI * 2;
 
-    const color = level === "critical" ? "#ef4444" :
-      level === "moderate" ? "#f59e0b" :
-      level === "mild" ? "#eab308" : "#22c55e";
+    const color = level === "critical" ? (isDark ? "#f87171" : "#ef4444") :
+      level === "moderate" ? (isDark ? "#fbbf24" : "#f59e0b") :
+      level === "mild" ? (isDark ? "#facc15" : "#eab308") : (isDark ? "#4ade80" : "#22c55e");
 
     ctx.beginPath();
     ctx.arc(center, center, radius, startAngle, endAngle);
@@ -46,7 +49,7 @@ export default function SeverityDonut({ score, level }: SeverityDonutProps) {
     ctx.lineWidth = lineWidth;
     ctx.lineCap = "round";
     ctx.stroke();
-  }, [score, level]);
+  }, [score, level, isDark]);
 
   return (
     <div className="bg-card rounded-2xl p-5 border border-border">
@@ -55,7 +58,7 @@ export default function SeverityDonut({ score, level }: SeverityDonutProps) {
         <div className="relative">
           <canvas ref={canvasRef} width={140} height={140} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold">{score}</span>
+            <span className="text-2xl font-bold text-foreground">{score}</span>
             <span className="text-[10px] text-muted uppercase tracking-wider">Score</span>
           </div>
         </div>

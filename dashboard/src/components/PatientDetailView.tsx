@@ -29,10 +29,10 @@ export default function PatientDetailView({ patient, allPatients, selectedFindin
       {/* ── Left + Center ── */}
       <div className="flex-1 flex">
       {/* ── Left: Patient list ── */}
-      <div className="w-[240px] border-x border-gray-100 overflow-y-auto">
-        <div className="px-8 py-4 border-b border-gray-50">
+      <div className="w-[240px] border-x border-border overflow-y-auto bg-card">
+        <div className="px-8 py-4 border-b border-border/50">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900">Patient Lists ({allPatients.length})</h3>
+            <h3 className="text-sm font-semibold text-foreground">Patient Lists ({allPatients.length})</h3>
           </div>
         </div>
         <div className="px-3 py-2 space-y-1.5">
@@ -48,23 +48,23 @@ export default function PatientDetailView({ patient, allPatients, selectedFindin
                 onClick={() => onSelectPatient(p.id)}
                 className={`w-full px-3 py-2.5 flex items-center gap-3 rounded-xl transition-all text-left ${
                   isActive
-                    ? "bg-white shadow-sm ring-1 ring-gray-200"
-                    : "hover:bg-white hover:shadow-sm"
+                    ? "bg-panel-bg shadow-sm ring-1 ring-border"
+                    : "hover:bg-panel-bg hover:shadow-sm"
                 }`}
               >
                 <div className="relative">
                   <div className={`w-9 h-9 rounded-full text-[11px] font-semibold flex items-center justify-center ${
-                    isActive ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+                    isActive ? "bg-accent text-background" : "bg-accent-light text-foreground/70"
                   }`}>
                     {initials}
                   </div>
-                  <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${dotColor}`} />
+                  <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-card ${dotColor}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm truncate ${isActive ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>{p.name}</p>
-                  <p className="text-[11px] text-gray-400 truncate">{p.topFinding} · {Math.round(p.findings[0]?.confidence * 100)}%</p>
+                  <p className={`text-sm truncate ${isActive ? "font-semibold text-foreground" : "font-medium text-foreground/80"}`}>{p.name}</p>
+                  <p className="text-[11px] text-muted truncate">{p.topFinding} · {Math.round(p.findings[0]?.confidence * 100)}%</p>
                 </div>
-                <ChevronRight size={14} className={isActive ? "text-gray-500" : "text-gray-300"} />
+                <ChevronRight size={14} className={isActive ? "text-muted" : "text-muted/50"} />
               </button>
             );
           })}
@@ -72,14 +72,14 @@ export default function PatientDetailView({ patient, allPatients, selectedFindin
       </div>
 
       {/* ── Center: X-ray + findings ── */}
-      <div className="flex-1 overflow-y-auto bg-gray-50/30">
+      <div className="flex-1 overflow-y-auto bg-panel-bg/30">
         {/* Breadcrumb + tabs */}
         <div className="px-6 pt-4 pb-0">
-          <button onClick={onBack} className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 mb-3 transition-colors">
+          <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted hover:text-foreground mb-3 transition-colors">
             <ChevronLeft size={16} /> Back to Queue
           </button>
 
-          <div className="flex items-center gap-6 border-b border-gray-100">
+          <div className="flex items-center gap-6 border-b border-border">
             {[
               { id: "xray" as const, label: "X-ray View" },
               { id: "findings" as const, label: "Findings" },
@@ -90,8 +90,8 @@ export default function PatientDetailView({ patient, allPatients, selectedFindin
                 onClick={() => setActiveTab(tab.id)}
                 className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? "border-gray-900 text-gray-900"
-                    : "border-transparent text-gray-400 hover:text-gray-600"
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-muted hover:text-foreground/70"
                 }`}
               >
                 {tab.label}
@@ -116,7 +116,7 @@ export default function PatientDetailView({ patient, allPatients, selectedFindin
 
       </div>
       {/* ── Right: Patient info panel (full white, edge-to-edge) ── */}
-      <div className="w-[320px] overflow-y-auto bg-white">
+      <div className="w-[320px] overflow-y-auto bg-card">
         <PatientInfoPanel patient={patient} highestTier={highestTier} tierColor={tierColor} />
       </div>
     </div>
@@ -153,13 +153,13 @@ function XrayPanel({ patient, imageLoaded, setImageLoaded, selectedFinding, onSe
       </div>
 
       {/* All 5 conditions — animated bars */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">AI Detection Results</h3>
+      <div className="bg-card rounded-2xl border border-border p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-4">AI Detection Results</h3>
         <div className="space-y-3">
           {ACTIVE_CONDITIONS.map(name => {
             const f = findingMap.get(name);
             const conf = f ? Math.round(f.confidence * 100) : 0;
-            const color = f ? TIER_COLORS[f.tier] : "#e5e7eb";
+            const color = f ? TIER_COLORS[f.tier] : "var(--border)";
             const detected = conf >= 50;
             const isSelected = selectedFinding?.pathology === name;
 
@@ -168,17 +168,17 @@ function XrayPanel({ patient, imageLoaded, setImageLoaded, selectedFinding, onSe
                 key={name}
                 onClick={() => f && onSelectFinding(f)}
                 className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all ${
-                  isSelected ? "bg-gray-50 ring-1 ring-gray-200" : detected ? "hover:bg-gray-50/60" : "opacity-50"
+                  isSelected ? "bg-panel-bg ring-1 ring-border" : detected ? "hover:bg-panel-bg/60" : "opacity-50"
                 }`}
               >
-                <span className={`text-sm w-36 ${detected ? "font-medium text-gray-900" : "text-gray-400"}`}>{name}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <span className={`text-sm w-36 ${detected ? "font-medium text-foreground" : "text-muted"}`}>{name}</span>
+                <div className="flex-1 h-2 bg-accent-light rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700 ease-out"
                     style={{ width: `${conf}%`, backgroundColor: color }}
                   />
                 </div>
-                <span className="text-sm font-semibold w-10 text-right" style={{ color: detected ? color : "#d1d5db" }}>{conf}%</span>
+                <span className="text-sm font-semibold w-10 text-right" style={{ color: detected ? color : "var(--muted)" }}>{conf}%</span>
                 {f && detected && (
                   <span className="text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded"
                     style={{ color, backgroundColor: `${color}12` }}>
@@ -224,14 +224,14 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
           <div
             key={f.pathology}
             onClick={() => onSelectFinding(f)}
-            className={`bg-white rounded-2xl border p-5 cursor-pointer transition-all ${
-              isSelected ? "border-gray-300 shadow-sm" : "border-gray-100 hover:border-gray-200"
+            className={`bg-card rounded-2xl border p-5 cursor-pointer transition-all ${
+              isSelected ? "border-border shadow-sm" : "border-border/50 hover:border-border"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }} />
-                <h4 className="text-base font-semibold text-gray-900">{f.pathology}</h4>
+                <h4 className="text-base font-semibold text-foreground">{f.pathology}</h4>
                 <span className="text-[10px] font-bold tracking-wide px-2 py-0.5 rounded"
                   style={{ color, backgroundColor: `${color}12` }}>
                   {TIER_LABELS[f.tier]}
@@ -240,18 +240,18 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
               <span className="text-lg font-bold" style={{ color }}>{Math.round(f.confidence * 100)}%</span>
             </div>
 
-            <p className="text-sm text-gray-500 leading-relaxed mb-4">{f.explanation}</p>
+            <p className="text-sm text-muted leading-relaxed mb-4">{f.explanation}</p>
 
-            <div className="bg-gray-50 rounded-xl p-3 mb-4">
-              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Clinical Recommendation</p>
-              <p className="text-sm text-gray-600 leading-relaxed">{f.clinicalNote}</p>
+            <div className="bg-panel-bg rounded-xl p-3 mb-4">
+              <p className="text-[11px] font-semibold text-muted uppercase tracking-wide mb-1">Clinical Recommendation</p>
+              <p className="text-sm text-foreground/70 leading-relaxed">{f.clinicalNote}</p>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={(e) => { e.stopPropagation(); toggleStatus(f.pathology, "confirmed"); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  status === "confirmed" ? "bg-emerald-50 text-emerald-700" : "bg-gray-50 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
+                  status === "confirmed" ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : "bg-panel-bg text-muted hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400"
                 }`}
               >
                 <Check size={12} /> {status === "confirmed" ? "Confirmed" : "Confirm"}
@@ -259,7 +259,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
               <button
                 onClick={(e) => { e.stopPropagation(); toggleStatus(f.pathology, "dismissed"); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  status === "dismissed" ? "bg-gray-200 text-gray-600" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                  status === "dismissed" ? "bg-accent-light text-foreground/70" : "bg-panel-bg text-muted hover:bg-accent-light"
                 }`}
               >
                 <X size={12} /> Dismiss
@@ -267,7 +267,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
               <button
                 onClick={(e) => { e.stopPropagation(); toggleFlag(f.pathology); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  flagged ? "bg-amber-50 text-amber-700" : "bg-gray-50 text-gray-500 hover:bg-amber-50 hover:text-amber-600"
+                  flagged ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" : "bg-panel-bg text-muted hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400"
                 }`}
               >
                 <Flag size={12} /> {flagged ? "Flagged" : "Flag"}
@@ -284,37 +284,37 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
 function ClinicalDataPanel({ patient }: { patient: Patient }) {
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Patient Summary</h3>
+      <div className="bg-card rounded-2xl border border-border p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-4">Patient Summary</h3>
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{patient.findings.length}</p>
-            <p className="text-xs text-gray-400 mt-1">Findings</p>
+          <div className="bg-panel-bg rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{patient.findings.length}</p>
+            <p className="text-xs text-muted mt-1">Findings</p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{Math.round(patient.severityScore * 100)}</p>
-            <p className="text-xs text-gray-400 mt-1">Severity Score</p>
+          <div className="bg-panel-bg rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{Math.round(patient.severityScore * 100)}</p>
+            <p className="text-xs text-muted mt-1">Severity Score</p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{patient.lungIndex}</p>
-            <p className="text-xs text-gray-400 mt-1">Lung Index</p>
+          <div className="bg-panel-bg rounded-xl p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">{patient.lungIndex}</p>
+            <p className="text-xs text-muted mt-1">Lung Index</p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Vitals & Indicators</h3>
+      <div className="bg-card rounded-2xl border border-border p-5">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Vitals & Indicators</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Inflammation</span>
+            <span className="text-sm text-muted">Inflammation</span>
             <span className={`text-sm font-semibold ${patient.inflammation === "High" ? "text-red-500" : patient.inflammation === "Medium" ? "text-amber-500" : "text-emerald-500"}`}>{patient.inflammation}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Ventilation</span>
+            <span className="text-sm text-muted">Ventilation</span>
             <span className={`text-sm font-semibold ${patient.ventilation === "Compromised" ? "text-red-500" : patient.ventilation === "Impaired" ? "text-amber-500" : "text-emerald-500"}`}>{patient.ventilation}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-500">Risk Level</span>
+            <span className="text-sm text-muted">Risk Level</span>
             <span className={`text-sm font-semibold ${patient.riskLevel === "High" ? "text-red-500" : patient.riskLevel === "Medium" ? "text-amber-500" : "text-emerald-500"}`}>{patient.riskLevel}</span>
           </div>
         </div>
@@ -339,10 +339,10 @@ function PatientInfoPanel({ patient, highestTier, tierColor }: { patient: Patien
   return (
     <div className="p-5">
       {/* Patient header with avatar */}
-      <div className="text-center mb-5 pb-5 border-b border-gray-100">
+      <div className="text-center mb-5 pb-5 border-b border-border">
         <div className="relative inline-block mb-3">
-          <div className="w-20 h-20 rounded-full bg-gray-100 text-gray-600 text-xl font-bold flex items-center justify-center mx-auto"
-            style={{ boxShadow: `0 0 0 3px white, 0 0 0 5px ${tierColor}` }}>
+          <div className="w-20 h-20 rounded-full bg-accent-light text-foreground/70 text-xl font-bold flex items-center justify-center mx-auto"
+            style={{ boxShadow: `0 0 0 3px var(--card), 0 0 0 5px ${tierColor}` }}>
             {initials}
           </div>
           <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[8px] font-bold text-white"
@@ -350,8 +350,8 @@ function PatientInfoPanel({ patient, highestTier, tierColor }: { patient: Patien
             {TIER_LABELS[highestTier]}
           </span>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900">{patient.name}</h2>
-        <p className="text-xs text-gray-400 mt-0.5 font-mono">{patient.apiId || `P#${String(patient.id).padStart(5, "0")}`}</p>
+        <h2 className="text-lg font-semibold text-foreground">{patient.name}</h2>
+        <p className="text-xs text-muted mt-0.5 font-mono">{patient.apiId || `P#${String(patient.id).padStart(5, "0")}`}</p>
       </div>
 
       {/* Collapsible sections */}
@@ -368,8 +368,8 @@ function PatientInfoPanel({ patient, highestTier, tierColor }: { patient: Patien
         <InfoRow label="View" value={`${patient.view} (${patient.apPa})`} />
         <InfoRow label="Prior Studies" value={patient.priorStudies === 0 ? "None on file" : `${patient.priorStudies} prior CXR${patient.priorStudies > 1 ? "s" : ""}`} />
         <div className="py-2">
-          <p className="text-xs text-gray-400 mb-1">Reason for Exam</p>
-          <p className="text-sm text-gray-900 leading-relaxed">{patient.reasonForExam}</p>
+          <p className="text-xs text-muted mb-1">Reason for Exam</p>
+          <p className="text-sm text-foreground leading-relaxed">{patient.reasonForExam}</p>
         </div>
       </CollapsibleSection>
 
@@ -380,7 +380,7 @@ function PatientInfoPanel({ patient, highestTier, tierColor }: { patient: Patien
             <div key={f.pathology} className="flex items-center justify-between py-2">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-sm text-gray-700">{f.pathology}</span>
+                <span className="text-sm text-foreground/80">{f.pathology}</span>
               </div>
               <span className="text-sm font-semibold" style={{ color }}>{Math.round(f.confidence * 100)}%</span>
             </div>
@@ -396,10 +396,10 @@ function CollapsibleSection({ title, count, expanded, onToggle, children }: {
   title: string; count: number; expanded: boolean; onToggle: () => void; children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-border last:border-0">
       <button onClick={onToggle} className="w-full flex items-center justify-between py-3 text-left">
-        <span className="text-sm font-medium text-gray-900">{title} ({count})</span>
-        <ChevronDown size={16} className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        <span className="text-sm font-medium text-foreground">{title} ({count})</span>
+        <ChevronDown size={16} className={`text-muted transition-transform ${expanded ? "rotate-180" : ""}`} />
       </button>
       {expanded && <div className="pb-3">{children}</div>}
     </div>
@@ -409,8 +409,8 @@ function CollapsibleSection({ title, count, expanded, onToggle, children }: {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between py-2">
-      <span className="text-xs text-gray-400">{label}</span>
-      <span className="text-sm text-gray-900 font-medium text-right">{value}</span>
+      <span className="text-xs text-muted">{label}</span>
+      <span className="text-sm text-foreground font-medium text-right">{value}</span>
     </div>
   );
 }

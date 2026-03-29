@@ -25,7 +25,7 @@ export default function PatientInfo({ patient }: PatientInfoProps) {
         {items.map(({ icon: Icon, label, value }) => (
           <div key={label}>
             <span className="text-[10px] uppercase tracking-wider text-muted">{label}</span>
-            <p className="text-sm font-medium mt-0.5">{value}</p>
+            <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
           </div>
         ))}
       </div>

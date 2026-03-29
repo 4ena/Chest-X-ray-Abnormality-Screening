@@ -9,6 +9,7 @@ import {
 import type { Patient, Finding } from "@/data/mock";
 import { PATHOLOGY_REGIONS, ACTIVE_CONDITIONS } from "@/data/mock";
 import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface XrayViewerProps {
   patient: Patient;
@@ -27,6 +28,8 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
   const [viewerSize, setViewerSize] = useState({ w: 1000, h: 700 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   // X-ray gets 70%+ of the width — cards are compact on the sides
   const cardWidth = 185;
@@ -113,11 +116,11 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
       ctx.arc(cx, cy, isSelected ? 6 : 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = isDark ? "#151821" : "#ffffff";
       ctx.lineWidth = 2;
       ctx.stroke();
     }
-  }, [patient.findings, showHeatmap, heatmapOpacity, selectedFinding, viewerSize, imgAreaLeft, imgAreaWidth, imgAreaTop, imgAreaHeight]);
+  }, [patient.findings, showHeatmap, heatmapOpacity, selectedFinding, viewerSize, imgAreaLeft, imgAreaWidth, imgAreaTop, imgAreaHeight, isDark]);
 
   useEffect(() => { drawHeatmap(); }, [drawHeatmap]);
 
@@ -151,7 +154,7 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
 
   if (viewMode === "data") {
     return (
-      <div className="flex flex-col h-full bg-white">
+      <div className="flex flex-col h-full bg-card">
         <SummaryBar patient={patient} highestTier={highestTier} />
         <div className="flex items-center justify-end px-6 py-2 border-b border-border">
           <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
@@ -165,7 +168,10 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
     <div
       ref={viewerRef}
       className="relative flex-1 h-full overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #f5f7fc 0%, #eef1f8 40%, #e8ecf5 100%)" }}
+      style={{ background: isDark
+        ? "linear-gradient(135deg, #0f1117 0%, #111420 40%, #151821 100%)"
+        : "linear-gradient(135deg, #f5f7fc 0%, #eef1f8 40%, #e8ecf5 100%)"
+      }}
     >
       {/* ── Summary bar ── */}
       <div className="absolute top-0 left-0 right-0 z-30">
@@ -189,13 +195,13 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
             className={`max-w-full max-h-full object-contain rounded-2xl transition-opacity duration-700 ${
               imageLoaded ? "opacity-100" : "opacity-0"
             }`}
-            style={{ filter: "brightness(1.1) contrast(1.15)", boxShadow: "0 8px 40px rgba(0,0,0,0.12)", transform: `scale(${zoom}) rotate(${rotation}deg)`, transition: "transform 0.3s ease" }}
+            style={{ filter: "brightness(1.1) contrast(1.15)", boxShadow: isDark ? "0 8px 40px rgba(0,0,0,0.4)" : "0 8px 40px rgba(0,0,0,0.12)", transform: `scale(${zoom}) rotate(${rotation}deg)`, transition: "transform 0.3s ease" }}
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-white/60 rounded-2xl border border-border">
-            <ImageIcon size={48} className="text-gray-300 mb-3" />
+          <div className="w-full h-full flex flex-col items-center justify-center bg-card/60 rounded-2xl border border-border">
+            <ImageIcon size={48} className="text-muted/50 mb-3" />
             <p className="text-sm text-muted">X-ray image unavailable</p>
           </div>
         )}
@@ -205,7 +211,7 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
           </div>
         )}
         {imageLoaded && (
-          <div className="absolute top-3 left-3 bg-white/80 backdrop-blur-sm text-foreground text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
+          <div className="absolute top-3 left-3 bg-card/80 backdrop-blur-sm text-foreground text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
             {patient.view} &middot; {patient.apPa}
           </div>
@@ -239,7 +245,7 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
                 d={`M ${mx} ${my} C ${mx + cpOffset} ${my}, ${cardEdgeX - cpOffset} ${cardCenterY}, ${cardEdgeX} ${cardCenterY}`}
                 fill="none" stroke={color} strokeWidth={isSelected ? 2 : 1} strokeDasharray={isSelected ? "none" : "5 4"}
               />
-              <circle cx={mx} cy={my} r={isSelected ? 5 : 3} fill={color} stroke="#fff" strokeWidth={1.5} />
+              <circle cx={mx} cy={my} r={isSelected ? 5 : 3} fill={color} stroke={isDark ? "#151821" : "#fff"} strokeWidth={1.5} />
               <circle cx={cardEdgeX} cy={cardCenterY} r={3} fill={color} opacity={0.6} />
             </g>
           );
@@ -262,11 +268,11 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
 
       {/* ── Bottom toolbar ── */}
       <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-center py-3">
-        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-lg shadow-black/5 border border-border/50">
+        <div className="flex items-center gap-2 bg-card/90 backdrop-blur-sm rounded-2xl px-4 py-2 shadow-lg shadow-black/5 border border-border/50">
           <button
             onClick={() => setShowHeatmap(!showHeatmap)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-              showHeatmap ? "bg-accent text-white shadow-sm" : "bg-panel-bg text-muted hover:text-foreground"
+              showHeatmap ? "bg-accent text-background shadow-sm" : "bg-panel-bg text-muted hover:text-foreground"
             }`}
           >
             {showHeatmap ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -309,7 +315,7 @@ function SummaryBar({ patient, highestTier }: { patient: Patient; highestTier: 2
   const count = patient.findings.filter(f => f.confidence >= 0.5).length;
 
   return (
-    <div className="flex items-center gap-3 px-5 py-2.5 bg-white/90 backdrop-blur-sm border-b border-border/50">
+    <div className="flex items-center gap-3 px-5 py-2.5 bg-card/90 backdrop-blur-sm border-b border-border/50">
       {highestTier === 2 && <AlertTriangle size={14} style={{ color }} />}
       <span className="text-sm font-semibold text-foreground">
         {count} finding{count !== 1 ? "s" : ""} detected
@@ -334,9 +340,13 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
   const [status, setStatus] = useState<"pending" | "confirmed" | "dismissed">("pending");
   const [flagged, setFlagged] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   const isDismissed = status === "dismissed";
-  const activeColor = isDismissed ? "#cbd5e1" : color;
+  const activeColor = isDismissed ? (isDark ? "#475569" : "#cbd5e1") : color;
+  const cardBg = isDark ? "rgba(21,24,33,0.92)" : "rgba(255,255,255,0.88)";
+  const cardBgSelected = isDark ? "#151821" : "#ffffff";
 
   return (
     <div className="relative" onClick={onClick}>
@@ -347,7 +357,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
           [side === "left" ? "right" : "left"]: -7,
           borderTop: "7px solid transparent",
           borderBottom: "7px solid transparent",
-          [side === "left" ? "borderLeft" : "borderRight"]: `7px solid ${isSelected ? "#ffffff" : "rgba(255,255,255,0.88)"}`,
+          [side === "left" ? "borderLeft" : "borderRight"]: `7px solid ${isSelected ? cardBgSelected : cardBg}`,
           filter: isSelected ? "drop-shadow(1px 0 2px rgba(0,0,0,0.06))" : "none",
         }}
       />
@@ -358,9 +368,10 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
           isDismissed ? "opacity-50" : ""
         } ${
           isSelected
-            ? "bg-white shadow-xl shadow-black/8 ring-1 ring-black/5 scale-[1.02]"
-            : "bg-white/88 backdrop-blur-sm shadow-md shadow-black/5 hover:bg-white hover:shadow-lg"
+            ? "shadow-xl shadow-black/8 ring-1 ring-border scale-[1.02]"
+            : "backdrop-blur-sm shadow-md shadow-black/5 hover:shadow-lg"
         }`}
+        style={{ backgroundColor: isSelected ? cardBgSelected : cardBg }}
       >
         {/* Colored top accent bar */}
         <div className="h-[3px]" style={{ backgroundColor: activeColor }} />
@@ -384,7 +395,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
           <div className="flex items-center justify-between">
             <span
               className="text-[8px] font-bold tracking-wider px-1.5 py-0.5 rounded-sm"
-              style={{ color: isDismissed ? "#94a3b8" : color, backgroundColor: isDismissed ? "#f1f5f9" : `${color}12` }}
+              style={{ color: isDismissed ? "var(--muted)" : color, backgroundColor: isDismissed ? "var(--accent-light)" : `${color}12` }}
             >
               {TIER_LABELS[finding.tier]}
             </span>
@@ -407,7 +418,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
                 <button
                   onClick={(e) => { e.stopPropagation(); setStatus(status === "confirmed" ? "pending" : "confirmed"); }}
                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                    status === "confirmed" ? "bg-green-100 text-green-700" : "bg-gray-50 text-muted hover:bg-green-50 hover:text-green-600"
+                    status === "confirmed" ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400" : "bg-panel-bg text-muted hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400"
                   }`}
                   title="Confirm finding"
                 >
@@ -418,7 +429,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
                 <button
                   onClick={(e) => { e.stopPropagation(); setStatus(status === "dismissed" ? "pending" : "dismissed"); }}
                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                    status === "dismissed" ? "bg-gray-200 text-gray-600" : "bg-gray-50 text-muted hover:bg-gray-100"
+                    status === "dismissed" ? "bg-accent-light text-foreground/70" : "bg-panel-bg text-muted hover:bg-accent-light"
                   }`}
                   title="Dismiss finding"
                 >
@@ -429,7 +440,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
                 <button
                   onClick={(e) => { e.stopPropagation(); setFlagged(!flagged); }}
                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                    flagged ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-muted hover:bg-amber-50 hover:text-amber-600"
+                    flagged ? "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" : "bg-panel-bg text-muted hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400"
                   }`}
                   title="Flag for second opinion"
                 >
@@ -445,7 +456,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
                     setTimeout(() => setCopied(false), 1500);
                   }}
                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                    copied ? "bg-accent/10 text-accent" : "bg-gray-50 text-muted hover:bg-accent/5 hover:text-accent"
+                    copied ? "bg-accent/10 text-accent" : "bg-panel-bg text-muted hover:bg-accent/5 hover:text-accent"
                   }`}
                   title="Copy to report"
                 >
@@ -464,9 +475,9 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
 /* ── View Toggle ── */
 function ViewToggle({ viewMode, setViewMode }: { viewMode: string; setViewMode: (v: "xray" | "data") => void }) {
   return (
-    <div className="flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-border/50">
-      <button onClick={() => setViewMode("xray")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === "xray" ? "bg-foreground text-white shadow-sm" : "text-muted hover:text-foreground"}`}>X-ray View</button>
-      <button onClick={() => setViewMode("data")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === "data" ? "bg-foreground text-white shadow-sm" : "text-muted hover:text-foreground"}`}>Data View</button>
+    <div className="flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-border/50">
+      <button onClick={() => setViewMode("xray")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === "xray" ? "bg-accent text-background shadow-sm" : "text-muted hover:text-foreground"}`}>X-ray View</button>
+      <button onClick={() => setViewMode("data")} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === "data" ? "bg-accent text-background shadow-sm" : "text-muted hover:text-foreground"}`}>Data View</button>
     </div>
   );
 }

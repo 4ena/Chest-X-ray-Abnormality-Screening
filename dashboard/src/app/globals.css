@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #fafafa;
   --foreground: #111827;
@@ -19,6 +21,27 @@
   --mild-bg: #fefce8;
   --normal: #22c55e;
   --normal-bg: #f0fdf4;
+}
+
+.dark {
+  --background: #0b0d14;
+  --foreground: #e5e7eb;
+  --card: #151821;
+  --card-dark: #0f1117;
+  --border: #1e2231;
+  --muted: #6b7280;
+  --accent: #e5e7eb;
+  --accent-light: #1c1f2e;
+  --sidebar-bg: #151821;
+  --panel-bg: #111420;
+  --critical: #f87171;
+  --critical-bg: #2a1515;
+  --moderate: #fbbf24;
+  --moderate-bg: #2a2210;
+  --mild: #facc15;
+  --mild-bg: #2a2810;
+  --normal: #4ade80;
+  --normal-bg: #0a2515;
 }
 
 @theme inline {
@@ -58,3 +81,5 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+.dark ::-webkit-scrollbar-thumb { background: #374151; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #4b5563; }

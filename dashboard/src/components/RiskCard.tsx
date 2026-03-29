@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface RiskCardProps {
   title: string;
@@ -12,6 +13,8 @@ interface RiskCardProps {
 
 export default function RiskCard({ title, percentage, trend, status }: RiskCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,8 +38,8 @@ export default function RiskCard({ title, percentage, trend, status }: RiskCardP
 
     const color = status === "elevated" || status === "critical" ? "#FF6B4A" : "#4A9EFF";
     const fillColor = status === "elevated" || status === "critical"
-      ? "rgba(255,107,74,0.08)"
-      : "rgba(74,158,255,0.08)";
+      ? `rgba(255,107,74,${isDark ? 0.15 : 0.08})`
+      : `rgba(74,158,255,${isDark ? 0.15 : 0.08})`;
 
     // Area fill
     ctx.beginPath();
@@ -72,15 +75,15 @@ export default function RiskCard({ title, percentage, trend, status }: RiskCardP
     ctx.arc(lastX - 2, lastY, 3, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.strokeStyle = "#fff";
+    ctx.strokeStyle = isDark ? "#151821" : "#fff";
     ctx.lineWidth = 1.5;
     ctx.stroke();
-  }, [percentage, status]);
+  }, [percentage, status, isDark]);
 
   const statusBadge = {
-    elevated: { bg: "bg-red-50", text: "text-red-500", dot: "bg-red-500", label: "Elevated" },
-    critical: { bg: "bg-red-50", text: "text-red-500", dot: "bg-red-500", label: "Critical" },
-    normal: { bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500", label: "Normal" },
+    elevated: { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-500", dot: "bg-red-500", label: "Elevated" },
+    critical: { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-500", dot: "bg-red-500", label: "Critical" },
+    normal: { bg: "bg-green-50 dark:bg-green-950/30", text: "text-green-600 dark:text-green-400", dot: "bg-green-500", label: "Normal" },
   }[status];
 
   return (
@@ -94,7 +97,7 @@ export default function RiskCard({ title, percentage, trend, status }: RiskCardP
       </div>
       <div className="flex items-end justify-between">
         <div className="flex items-baseline gap-1">
-          <span className="text-3xl font-bold tracking-tight">{percentage}</span>
+          <span className="text-3xl font-bold tracking-tight text-foreground">{percentage}</span>
           <span className="text-sm text-muted">%</span>
           {trend === "up" ? (
             <TrendingUp size={14} className="text-red-400 ml-1" />

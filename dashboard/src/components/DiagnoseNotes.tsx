@@ -27,7 +27,7 @@ export default function DiagnoseNotes({ findings, onSelectFinding, selectedFindi
   const findingMap = new Map(findings.map(f => [f.pathology, f]));
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-border">
+    <div className="bg-card rounded-2xl p-5 border border-border">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-foreground">AI Analysis</h3>
         <button className="text-muted hover:text-foreground"><MoreHorizontal size={14} /></button>
@@ -53,7 +53,7 @@ export default function DiagnoseNotes({ findings, onSelectFinding, selectedFindi
         {ACTIVE_CONDITIONS.map(name => {
           const f = findingMap.get(name);
           const conf = f ? Math.round(f.confidence * 100) : 0;
-          const color = f ? TIER_COLORS[f.tier] : "#e2e8f0";
+          const color = f ? TIER_COLORS[f.tier] : "var(--border)";
           const isSelected = selectedFinding?.pathology === name;
           const detected = conf >= 50;
 
@@ -75,11 +75,11 @@ export default function DiagnoseNotes({ findings, onSelectFinding, selectedFindi
                     {name}
                   </span>
                 </div>
-                <span className="text-[11px] font-bold" style={{ color: conf > 0 ? color : "#cbd5e1" }}>
+                <span className="text-[11px] font-bold" style={{ color: conf > 0 ? color : "var(--muted)" }}>
                   {conf}%
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-accent-light rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full transition-all duration-700 ease-out"
                   style={{
