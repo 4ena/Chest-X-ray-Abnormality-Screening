@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { type Patient, type Finding, type Tier, type TierLabel, CONDITION_TIERS, ACTIVE_CONDITIONS } from "@/data/mock";
-import { isApiAvailable, listPatients, predictXray, createPatient as apiCreatePatient, type PredictionResponse, type ConditionResult } from "@/lib/api";
+import { isApiAvailable, listPatients, predictXray, createPatient as apiCreatePatient, deletePatient as apiDeletePatient, type PredictionResponse, type ConditionResult } from "@/lib/api";
 import { TIER_LABELS } from "@/lib/constants";
 
 // Explanations for findings (used when API doesn't provide them)
@@ -116,9 +116,11 @@ export function usePatients(): UsePatients {
     return b.severityScore - a.severityScore;
   });
 
-  const deletePatient = useCallback((id: number) => {
+  const deletePatient = useCallback(async (id: number) => {
     setUploadedPatients(prev => prev.filter(p => p.id !== id));
     setApiPatients(prev => prev.filter(p => p.id !== id));
+    // Also try to delete from API
+    try { await apiDeletePatient(`P${String(id).padStart(5, "0")}`); } catch {}
   }, []);
 
   const addPatientFromUpload = useCallback(async (data: {

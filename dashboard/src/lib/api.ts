@@ -136,6 +136,11 @@ export async function updatePatient(id: string, data: {
   return await res.json();
 }
 
+export async function deletePatient(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/patients/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
 // ── Finding actions ──
 
 export async function updateFindingAction(

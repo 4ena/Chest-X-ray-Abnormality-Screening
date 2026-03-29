@@ -204,6 +204,13 @@ def update_patient(patient_id: str, patient: PatientCreate):
     _patients[patient_id].update(patient.model_dump())
     return _patients[patient_id]
 
+@app.delete("/patients/{patient_id}")
+def delete_patient(patient_id: str):
+    if patient_id not in _patients:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    del _patients[patient_id]
+    return {"deleted": patient_id}
+
 # ── Finding action endpoints ──
 
 @app.post("/findings/{patient_id}/{pathology}/action", response_model=FindingActionResponse)
