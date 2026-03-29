@@ -4,15 +4,13 @@ import { useState, useEffect } from "react";
 import { MoreHorizontal, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import type { Finding } from "@/data/mock";
 import { ACTIVE_CONDITIONS } from "@/data/mock";
+import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
 interface DiagnoseNotesProps {
   findings: Finding[];
   onSelectFinding: (f: Finding) => void;
   selectedFinding: Finding | null;
 }
-
-const TIER_COLORS: Record<number, string> = { 2: "#ef4444", 3: "#f59e0b", 4: "#3b82f6" };
-const TIER_LABELS: Record<number, string> = { 2: "URGENT", 3: "SEMI-URGENT", 4: "MODERATE" };
 
 export default function DiagnoseNotes({ findings, onSelectFinding, selectedFinding }: DiagnoseNotesProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
