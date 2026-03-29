@@ -18,7 +18,7 @@ from torchvision import transforms
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "pneumanosis.pth")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "best_model.pth")
 MODEL_VERSION = "0.1.0-mock"
 IMAGE_SIZE = 224
 NUM_CLASSES = 5

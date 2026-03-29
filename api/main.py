@@ -132,41 +132,47 @@ async def predict(file: UploadFile = File(...)):
     if len(image_bytes) == 0:
         raise HTTPException(status_code=400, detail="Empty file")
 
-    # Run inference (mock or real model)
     result = predict_image(image_bytes)
 
-    # Build response with tier info
-    findings = []
+    findings_data = []
     for i, cond in enumerate(CONDITIONS):
         conf = result["confidences"][i]
-        findings.append(ConditionResult(
-            pathology=cond["name"],
-            confidence=round(conf, 4),
-            tier=cond["tier"],
-            tier_label=cond["tier_label"],
-            detected=conf >= 0.3,
-        ))
+        findings_data.append({
+            "pathology": cond["name"],
+            "confidence": round(conf, 4),
+            "tier": cond["tier"],
+            "tier_label": cond["tier_label"],
+            "weight": cond["weight"],
+            "detected": conf >= 0.3,
+        })
 
-    # Sort by confidence descending
-    findings.sort(key=lambda f: f.confidence, reverse=True)
+    total_weighted = sum(f["confidence"] * f["weight"] for f in findings_data)
+    total_weight = sum(f["weight"] for f in findings_data)
+    severity_score = round(total_weighted / total_weight, 4) if total_weight > 0 else 0.0
 
-    # Calculate severity score
-    total_weighted = sum(f.confidence * c["weight"] for f, c in zip(findings, CONDITIONS))
-    total_weight = sum(c["weight"] for c in CONDITIONS)
-    severity_score = round(total_weighted / total_weight, 4) if total_weight > 0 else 0
+    findings_data.sort(key=lambda f: f["confidence"], reverse=True)
 
-    # Highest tier among detected findings
-    detected_tiers = [f.tier for f in findings if f.detected]
+    response_findings = [
+        ConditionResult(
+            pathology=f["pathology"],
+            confidence=f["confidence"],
+            tier=f["tier"],
+            tier_label=f["tier_label"],
+            detected=f["detected"],
+        )
+        for f in findings_data
+    ]
+
+    detected_tiers = [f["tier"] for f in findings_data if f["detected"]]
     highest_tier = min(detected_tiers) if detected_tiers else 5
 
     return PredictionResponse(
-        findings=findings,
+        findings=response_findings,
         highest_tier=highest_tier,
         severity_score=severity_score,
         model_version=result["model_version"],
         using_mock=result["using_mock"],
     )
-
 # ── Patient endpoints ──
 
 @app.get("/patients")
