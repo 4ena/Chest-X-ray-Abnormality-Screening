@@ -113,7 +113,7 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
       </div>
 
       {/* ── Right: Patient info panel ── */}
-      <div className="w-[300px] border-l border-gray-100 overflow-y-auto bg-white">
+      <div className="w-[300px] overflow-y-auto">
         <PatientInfoPanel patient={patient} highestTier={highestTier} tierColor={tierColor} />
       </div>
     </div>
