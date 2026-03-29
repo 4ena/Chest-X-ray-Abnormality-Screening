@@ -1,0 +1,17 @@
+{
+  "name": "Pneumanosis",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "api",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "ms-python.python",
+        "astral-sh.ty"
+      ]
+    }
+  }
+}
