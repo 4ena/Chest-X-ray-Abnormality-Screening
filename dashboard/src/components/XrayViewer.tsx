@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import {
   ZoomIn, ZoomOut, RotateCw, Layers, Eye, EyeOff,
   Lightbulb, Stethoscope, ImageIcon, AlertTriangle, ChevronDown,
+  Check, X, Flag, ClipboardCopy,
 } from "lucide-react";
 import type { Patient, Finding } from "@/data/mock";
 import { PATHOLOGY_REGIONS, ACTIVE_CONDITIONS } from "@/data/mock";
@@ -248,14 +249,14 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
       {/* ── Left annotation cards ── */}
       {leftPositions.map(({ finding, y }) => (
         <div key={finding.pathology} className="absolute z-30" style={{ left: cardMargin, top: y, width: cardWidth }}>
-          <CompactAnnotationCard finding={finding} isSelected={selectedFinding?.pathology === finding.pathology} onClick={() => onSelectFinding(finding)} />
+          <CompactAnnotationCard finding={finding} isSelected={selectedFinding?.pathology === finding.pathology} onClick={() => onSelectFinding(finding)} side="left" />
         </div>
       ))}
 
       {/* ── Right annotation cards ── */}
       {rightPositions.map(({ finding, y }) => (
         <div key={finding.pathology} className="absolute z-30" style={{ right: cardMargin, top: y, width: cardWidth }}>
-          <CompactAnnotationCard finding={finding} isSelected={selectedFinding?.pathology === finding.pathology} onClick={() => onSelectFinding(finding)} />
+          <CompactAnnotationCard finding={finding} isSelected={selectedFinding?.pathology === finding.pathology} onClick={() => onSelectFinding(finding)} side="right" />
         </div>
       ))}
 
@@ -286,7 +287,7 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
   );
 }
 
-/* ── Summary Bar — "3 findings detected — Highest: Edema (91%, Tier 2)" ── */
+/* ── Summary Bar — clean single line, no truncated stats ── */
 function SummaryBar({ patient, highestTier }: { patient: Patient; highestTier: 2 | 3 | 4 }) {
   const topFinding = patient.findings[0];
   const color = TIER_COLORS[highestTier];
@@ -294,102 +295,154 @@ function SummaryBar({ patient, highestTier }: { patient: Patient; highestTier: 2
   const count = patient.findings.filter(f => f.confidence >= 0.3).length;
 
   return (
-    <div className="flex items-center justify-between px-5 py-2.5 bg-white/90 backdrop-blur-sm border-b border-border/50">
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          {highestTier === 2 && <AlertTriangle size={14} style={{ color }} />}
-          <span className="text-sm font-semibold text-foreground">
-            {count} finding{count !== 1 ? "s" : ""} detected
-          </span>
-        </div>
-        <span className="text-muted">—</span>
-        <span className="text-sm text-muted">
-          Highest: <span className="font-semibold text-foreground">{topFinding?.pathology}</span>
-          {" "}
-          <span className="font-bold" style={{ color }}>{Math.round((topFinding?.confidence || 0) * 100)}%</span>
-        </span>
-        <span className="text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded" style={{ color, backgroundColor: `${color}12` }}>
-          TIER {highestTier} — {label}
-        </span>
-      </div>
-
-      {/* Mini 5-bar for all conditions */}
-      <div className="flex items-center gap-3">
-        <AllConditionBars findings={patient.findings} />
-      </div>
+    <div className="flex items-center gap-3 px-5 py-2.5 bg-white/90 backdrop-blur-sm border-b border-border/50">
+      {highestTier === 2 && <AlertTriangle size={14} style={{ color }} />}
+      <span className="text-sm font-semibold text-foreground">
+        {count} finding{count !== 1 ? "s" : ""} detected
+      </span>
+      <span className="text-muted">—</span>
+      <span className="text-sm text-muted">
+        Highest: <span className="font-semibold text-foreground">{topFinding?.pathology}</span>
+        {" "}
+        <span className="font-bold" style={{ color }}>{Math.round((topFinding?.confidence || 0) * 100)}%</span>
+      </span>
+      <span className="text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded" style={{ color, backgroundColor: `${color}12` }}>
+        TIER {highestTier} — {label}
+      </span>
     </div>
   );
 }
 
-/* ── All 5 conditions as horizontal bars ── */
-function AllConditionBars({ findings }: { findings: Finding[] }) {
-  const findingMap = new Map(findings.map(f => [f.pathology, f]));
-
-  return (
-    <div className="flex flex-col gap-0.5">
-      {ACTIVE_CONDITIONS.map(name => {
-        const f = findingMap.get(name);
-        const conf = f ? Math.round(f.confidence * 100) : 0;
-        const color = f ? TIER_COLORS[f.tier] : "#e2e8f0";
-        const shortName = name.length > 10 ? name.slice(0, 8) + ".." : name;
-
-        return (
-          <div key={name} className="flex items-center gap-1.5">
-            <span className="text-[8px] text-muted w-14 text-right truncate">{shortName}</span>
-            <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${conf}%`, backgroundColor: color }} />
-            </div>
-            <span className="text-[8px] font-bold w-6" style={{ color: conf > 0 ? color : "#cbd5e1" }}>{conf}%</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ── Compact Annotation Card ── */
-function CompactAnnotationCard({ finding, isSelected, onClick }: { finding: Finding; isSelected: boolean; onClick: () => void }) {
+/* ── Annotation Callout Card with CSS arrow pointer ── */
+function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding: Finding; isSelected: boolean; onClick: () => void; side: "left" | "right" }) {
   const color = TIER_COLORS[finding.tier] || "#3b82f6";
   const [expanded, setExpanded] = useState(false);
+  const [status, setStatus] = useState<"pending" | "confirmed" | "dismissed">("pending");
+  const [flagged, setFlagged] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const isDismissed = status === "dismissed";
+  const activeColor = isDismissed ? "#cbd5e1" : color;
 
   return (
-    <div
-      onClick={onClick}
-      className={`rounded-xl p-2.5 cursor-pointer transition-all duration-200 border-l-[3px] ${
-        isSelected
-          ? "bg-white shadow-xl shadow-black/8 ring-1 ring-black/5 scale-[1.03]"
-          : "bg-white/85 backdrop-blur-sm shadow-md shadow-black/5 hover:bg-white hover:shadow-lg"
-      }`}
-      style={{ borderLeftColor: color }}
-    >
-      {/* Name + confidence + tier */}
-      <div className="flex items-center justify-between mb-0.5">
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-          <h4 className="text-[11px] font-bold text-foreground">{finding.pathology}</h4>
+    <div className="relative" onClick={onClick}>
+      {/* CSS arrow pointing toward the X-ray */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 w-0 h-0"
+        style={{
+          [side === "left" ? "right" : "left"]: -7,
+          borderTop: "7px solid transparent",
+          borderBottom: "7px solid transparent",
+          [side === "left" ? "borderLeft" : "borderRight"]: `7px solid ${isSelected ? "#ffffff" : "rgba(255,255,255,0.88)"}`,
+          filter: isSelected ? "drop-shadow(1px 0 2px rgba(0,0,0,0.06))" : "none",
+        }}
+      />
+
+      {/* Card body */}
+      <div
+        className={`rounded-xl cursor-pointer transition-all duration-200 overflow-hidden ${
+          isDismissed ? "opacity-50" : ""
+        } ${
+          isSelected
+            ? "bg-white shadow-xl shadow-black/8 ring-1 ring-black/5 scale-[1.02]"
+            : "bg-white/88 backdrop-blur-sm shadow-md shadow-black/5 hover:bg-white hover:shadow-lg"
+        }`}
+      >
+        {/* Colored top accent bar */}
+        <div className="h-[3px]" style={{ backgroundColor: activeColor }} />
+
+        <div className="p-2.5">
+          {/* Name + confidence */}
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeColor }} />
+              <h4 className={`text-[11px] font-bold text-foreground ${isDismissed ? "line-through text-muted" : ""}`}>
+                {finding.pathology}
+              </h4>
+              {status === "confirmed" && <Check size={9} className="text-green-500" />}
+            </div>
+            <span className="text-[12px] font-bold" style={{ color: activeColor }}>
+              {Math.round(finding.confidence * 100)}%
+            </span>
+          </div>
+
+          {/* Tier badge + expand */}
+          <div className="flex items-center justify-between">
+            <span
+              className="text-[8px] font-bold tracking-wider px-1.5 py-0.5 rounded-sm"
+              style={{ color: isDismissed ? "#94a3b8" : color, backgroundColor: isDismissed ? "#f1f5f9" : `${color}12` }}
+            >
+              {TIER_LABELS[finding.tier]}
+            </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+              className="text-muted hover:text-foreground p-0.5"
+            >
+              <ChevronDown size={10} className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+            </button>
+          </div>
+
+          {/* Expanded details + actions */}
+          {expanded && (
+            <div className="mt-2 pt-2 border-t border-border/40">
+              <p className="text-[9px] text-muted leading-relaxed mb-2">
+                {finding.explanation.split(". ")[0]}.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setStatus(status === "confirmed" ? "pending" : "confirmed"); }}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                    status === "confirmed" ? "bg-green-100 text-green-700" : "bg-gray-50 text-muted hover:bg-green-50 hover:text-green-600"
+                  }`}
+                  title="Confirm finding"
+                >
+                  <Check size={8} />
+                  {status === "confirmed" ? "Confirmed" : "Confirm"}
+                </button>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); setStatus(status === "dismissed" ? "pending" : "dismissed"); }}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                    status === "dismissed" ? "bg-gray-200 text-gray-600" : "bg-gray-50 text-muted hover:bg-gray-100"
+                  }`}
+                  title="Dismiss finding"
+                >
+                  <X size={8} />
+                  Dismiss
+                </button>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); setFlagged(!flagged); }}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                    flagged ? "bg-amber-100 text-amber-700" : "bg-gray-50 text-muted hover:bg-amber-50 hover:text-amber-600"
+                  }`}
+                  title="Flag for second opinion"
+                >
+                  <Flag size={8} />
+                  {flagged ? "Flagged" : "Flag"}
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(`${finding.pathology}: ${Math.round(finding.confidence * 100)}% confidence. ${finding.clinicalNote}`);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1500);
+                  }}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
+                    copied ? "bg-accent/10 text-accent" : "bg-gray-50 text-muted hover:bg-accent/5 hover:text-accent"
+                  }`}
+                  title="Copy to report"
+                >
+                  <ClipboardCopy size={8} />
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-        <span className="text-[11px] font-bold" style={{ color }}>{Math.round(finding.confidence * 100)}%</span>
       </div>
-
-      {/* Tier badge */}
-      <div className="flex items-center justify-between pl-3">
-        <span className="text-[8px] font-bold tracking-wider px-1.5 py-0.5 rounded" style={{ color, backgroundColor: `${color}12` }}>
-          {TIER_LABELS[finding.tier]}
-        </span>
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-          className="text-muted hover:text-foreground"
-        >
-          <ChevronDown size={10} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
-        </button>
-      </div>
-
-      {/* Expand for detail (on-demand) */}
-      {expanded && (
-        <p className="text-[9px] text-muted leading-relaxed mt-1.5 pl-3 border-t border-border/50 pt-1.5">
-          {finding.explanation.split(". ")[0]}.
-        </p>
-      )}
     </div>
   );
 }
