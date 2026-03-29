@@ -13,9 +13,11 @@ const navItems = [
 interface TopNavProps {
   activeView: string;
   onViewChange: (view: string) => void;
+  globalSearch: string;
+  onGlobalSearchChange: (q: string) => void;
 }
 
-export default function TopNav({ activeView, onViewChange }: TopNavProps) {
+export default function TopNav({ activeView, onViewChange, globalSearch, onGlobalSearchChange }: TopNavProps) {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
       <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between h-16">
@@ -55,7 +57,9 @@ export default function TopNav({ activeView, onViewChange }: TopNavProps) {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search here..."
+              placeholder="Search patients..."
+              value={globalSearch}
+              onChange={(e) => { onGlobalSearchChange(e.target.value); if (activeView !== "triage") onViewChange("triage"); }}
               className="pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 w-52"
             />
           </div>

@@ -66,12 +66,46 @@ class ConditionInfo(BaseModel):
 # ── Condition + tier mapping (matches dashboard mock.ts) ──
 
 CONDITIONS = [
-    {"name": "Atelectasis",       "tier": 4, "tier_label": "moderate",     "weight": 4},
-    {"name": "Cardiomegaly",      "tier": 3, "tier_label": "semi-urgent",  "weight": 6},
-    {"name": "Consolidation",     "tier": 2, "tier_label": "urgent",       "weight": 8},
-    {"name": "Edema",             "tier": 2, "tier_label": "urgent",       "weight": 8},
-    {"name": "Pleural Effusion",  "tier": 3, "tier_label": "semi-urgent",  "weight": 6},
+    {"name": "Atelectasis",       "tier": 4, "tier_label": "routine",   "weight": 4},
+    {"name": "Cardiomegaly",      "tier": 3, "tier_label": "priority",  "weight": 6},
+    {"name": "Consolidation",     "tier": 2, "tier_label": "stat",      "weight": 8},
+    {"name": "Edema",             "tier": 2, "tier_label": "stat",      "weight": 8},
+    {"name": "Pleural Effusion",  "tier": 3, "tier_label": "priority",  "weight": 6},
 ]
+
+# ── In-memory store (replace with DB in production) ──
+
+_patients: dict[str, dict] = {}
+_finding_actions: dict[str, dict] = {}  # key: "patientId:pathology"
+
+class PatientCreate(BaseModel):
+    name: str
+    age: int
+    sex: str
+    reason_for_exam: str = ""
+    findings: list[ConditionResult] = []
+    severity_score: float = 0
+    highest_tier: int = 4
+
+class PatientResponse(BaseModel):
+    id: str
+    name: str
+    age: int
+    sex: str
+    reason_for_exam: str
+    findings: list[ConditionResult]
+    severity_score: float
+    highest_tier: int
+    created_at: str
+
+class FindingAction(BaseModel):
+    action: str  # "confirm" | "dismiss" | "flag" | "unflag"
+
+class FindingActionResponse(BaseModel):
+    patient_id: str
+    pathology: str
+    status: str
+    flagged: bool
 
 # ── Endpoints ──
 
@@ -131,4 +165,70 @@ async def predict(file: UploadFile = File(...)):
         severity_score=severity_score,
         model_version=result["model_version"],
         using_mock=result["using_mock"],
+    )
+
+# ── Patient endpoints ──
+
+@app.get("/patients")
+def list_patients():
+    return list(_patients.values())
+
+@app.post("/patients", response_model=PatientResponse)
+def create_patient(patient: PatientCreate):
+    from datetime import datetime
+    pid = f"P{len(_patients) + 1:05d}"
+    record = {
+        "id": pid,
+        **patient.model_dump(),
+        "created_at": datetime.now().isoformat(),
+    }
+    _patients[pid] = record
+    return PatientResponse(**record)
+
+@app.get("/patients/{patient_id}")
+def get_patient(patient_id: str):
+    if patient_id not in _patients:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    return _patients[patient_id]
+
+@app.put("/patients/{patient_id}")
+def update_patient(patient_id: str, patient: PatientCreate):
+    if patient_id not in _patients:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    _patients[patient_id].update(patient.model_dump())
+    return _patients[patient_id]
+
+# ── Finding action endpoints ──
+
+@app.post("/findings/{patient_id}/{pathology}/action", response_model=FindingActionResponse)
+def update_finding_action(patient_id: str, pathology: str, action: FindingAction):
+    key = f"{patient_id}:{pathology}"
+    current = _finding_actions.get(key, {"status": "pending", "flagged": False})
+
+    if action.action == "confirm":
+        current["status"] = "confirmed"
+    elif action.action == "dismiss":
+        current["status"] = "dismissed"
+    elif action.action == "flag":
+        current["flagged"] = True
+    elif action.action == "unflag":
+        current["flagged"] = False
+
+    _finding_actions[key] = current
+    return FindingActionResponse(
+        patient_id=patient_id,
+        pathology=pathology,
+        status=current["status"],
+        flagged=current["flagged"],
+    )
+
+@app.get("/findings/{patient_id}/{pathology}/action", response_model=FindingActionResponse)
+def get_finding_action(patient_id: str, pathology: str):
+    key = f"{patient_id}:{pathology}"
+    current = _finding_actions.get(key, {"status": "pending", "flagged": False})
+    return FindingActionResponse(
+        patient_id=patient_id,
+        pathology=pathology,
+        status=current["status"],
+        flagged=current["flagged"],
     )
