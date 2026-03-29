@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, AlertTriangle, Clock, Users, Activity } from "lucide-react";
+import { ArrowRight, AlertTriangle, Clock, Users, Activity, Search } from "lucide-react";
 import { patients, CONDITION_TIERS, ACTIVE_CONDITIONS } from "@/data/mock";
 
 interface TriageViewProps {
@@ -37,6 +37,7 @@ function timeSinceAdmission(dateStr: string): string {
 
 export default function TriageView({ onSelectPatient }: TriageViewProps) {
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const filters = [
     { key: "all", label: "All Patients" },
     { key: "2", label: "Urgent" },
@@ -44,9 +45,18 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
     { key: "4", label: "Moderate" },
   ];
 
-  const filtered = filter === "all"
+  let filtered = filter === "all"
     ? patients
     : patients.filter(p => getHighestTier(p.findings) === Number(filter));
+
+  if (search.trim()) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      String(p.id).padStart(5, "0").includes(q) ||
+      p.topFinding.toLowerCase().includes(q)
+    );
+  }
 
   // Stats
   const urgent = patients.filter(p => getHighestTier(p.findings) === 2).length;
@@ -107,21 +117,33 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-4">
-        {filters.map(f => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-              filter === f.key
-                ? "bg-foreground text-white"
-                : "bg-white text-muted border border-border hover:border-foreground/20"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      {/* Filters + Search */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex gap-2">
+          {filters.map(f => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                filter === f.key
+                  ? "bg-foreground text-white"
+                  : "bg-white text-muted border border-border hover:border-foreground/20"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            placeholder="Search patient or finding..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-border bg-white text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-56"
+          />
+        </div>
       </div>
 
       {/* Table */}
