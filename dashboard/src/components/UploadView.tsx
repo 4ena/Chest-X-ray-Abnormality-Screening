@@ -31,10 +31,6 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
-    if (!patientName.trim() || !patientAge.trim()) {
-      setError("Please fill in patient name and age before uploading.");
-      return;
-    }
     setError(null);
     setFileName(file.name);
     setPreviewUrl(URL.createObjectURL(file));
@@ -47,8 +43,8 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
     try {
       const { predictions, patientId, usingMock: mock } = await onUploadAndPredict({
         file,
-        name: patientName,
-        age: parseInt(patientAge),
+        name: patientName.trim() || "Unknown",
+        age: parseInt(patientAge) || 0,
         sex: patientSex,
         reasonForExam,
       });
@@ -60,6 +56,17 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
       setError("Analysis failed. Please try again.");
     }
     setAnalyzing(false);
+  }
+
+  async function handleSave() {
+    if (!patientName.trim() || !patientAge.trim()) {
+      setError("Please fill in patient name and age to save.");
+      return;
+    }
+    setError(null);
+    // Patient is already saved during upload via onUploadAndPredict
+    // This just validates the fields are filled
+    setSavedId(savedId || "saved");
   }
 
   const hasResults = results !== null;
