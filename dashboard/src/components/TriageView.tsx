@@ -86,7 +86,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
   const routine = patients.filter(p => getHighestTier(p.findings) === 4).length;
 
   return (
-    <div className="px-8 py-8">
+    <div className="max-w-screen-2xl mx-auto px-8 py-8">
       {/* Stats row: title+3 cards on left, chart card on right */}
       <div className="grid grid-cols-[1fr_280px] gap-4 mb-8">
         {/* Left: title + 3 stat cards */}
@@ -104,7 +104,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   <Shield size={14} className="text-gray-400" />
                 </div>
               </div>
-              <p className="text-4xl font-bold text-gray-900">{patients.length}</p>
+              <p className="text-5xl font-extrabold text-gray-900">{patients.length}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp size={11} className="text-emerald-500" />
                 <span className="text-[11px] text-emerald-500 font-medium">12%</span>
@@ -120,7 +120,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   <AlertTriangle size={14} className="text-red-500" />
                 </div>
               </div>
-              <p className="text-4xl font-bold text-red-600">{stat}</p>
+              <p className="text-5xl font-extrabold text-red-600">{stat}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp size={11} className="text-red-400" />
                 <span className="text-[11px] text-red-400 font-medium">{Math.round((stat / patients.length) * 100)}%</span>
@@ -136,7 +136,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   <Activity size={14} className="text-amber-500" />
                 </div>
               </div>
-              <p className="text-4xl font-bold text-amber-600">{priority}</p>
+              <p className="text-5xl font-extrabold text-amber-600">{priority}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingDown size={11} className="text-amber-400" />
                 <span className="text-[11px] text-amber-400 font-medium">{Math.round((priority / patients.length) * 100)}%</span>
