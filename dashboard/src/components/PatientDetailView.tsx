@@ -28,7 +28,7 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
     <div className="h-[calc(100vh-64px)] max-w-screen-2xl mx-auto flex">
       {/* ── Left: Patient list ── */}
       <div className="w-[240px] border-r border-gray-100 overflow-y-auto">
-        <div className="px-4 py-4 border-b border-gray-50">
+        <div className="px-8 py-4 border-b border-gray-50">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-gray-900">Patient Lists ({patients.length})</h3>
           </div>
