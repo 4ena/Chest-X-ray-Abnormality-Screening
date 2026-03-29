@@ -276,7 +276,7 @@ function generatePatients(): Patient[] {
     const findings: Finding[] = selected.map(name => {
       const confidence = Math.round((random() * 0.7 + 0.15) * 100) / 100;
       const info = EXPLANATIONS[name];
-      const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "moderate" as TierLabel };
+      const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "routine" as TierLabel };
       return {
         pathology: name,
         confidence,
@@ -320,7 +320,17 @@ function generatePatients(): Patient[] {
     });
   }
 
-  return patients.sort((a, b) => b.severityScore - a.severityScore);
+  // Clinical sort: tier-first, then severity score, then wait time
+  // Based on ACR worklist guidelines and PMC chest X-ray prioritization study
+  // All STAT patients above all PRIORITY above all ROUTINE
+  return patients.sort((a, b) => {
+    const tierA = Math.min(...a.findings.map(f => f.tier));
+    const tierB = Math.min(...b.findings.map(f => f.tier));
+    if (tierA !== tierB) return tierA - tierB; // lower tier number = more urgent
+    if (b.severityScore !== a.severityScore) return b.severityScore - a.severityScore;
+    // longer wait = higher priority (earlier date = longer wait)
+    return new Date(a.admissionDate).getTime() - new Date(b.admissionDate).getTime();
+  });
 }
 
 export const patients = generatePatients();
