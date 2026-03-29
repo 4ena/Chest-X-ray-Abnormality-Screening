@@ -8,7 +8,7 @@ import type { Patient, Finding } from "@/data/mock";
 
 interface UploadViewProps {
   onViewTriage?: () => void;
-  onUploadAndPredict: (data: { file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string }) => Promise<{ predictions: Finding[]; patientId: string }>;
+  onUploadAndPredict: (data: { file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string }) => Promise<{ predictions: Finding[]; patientId: string; usingMock: boolean }>;
   existingPatients: Patient[];
 }
 
@@ -26,6 +26,8 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
   const [reasonForExam, setReasonForExam] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [usingMock, setUsingMock] = useState(false);
+  const [analysisTime, setAnalysisTime] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
@@ -41,8 +43,9 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
     setResults(null);
     setSavedId(null);
 
+    const startTime = performance.now();
     try {
-      const { predictions, patientId } = await onUploadAndPredict({
+      const { predictions, patientId, usingMock: mock } = await onUploadAndPredict({
         file,
         name: patientName,
         age: parseInt(patientAge),
@@ -51,6 +54,8 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
       });
       setResults(predictions);
       setSavedId(patientId);
+      setUsingMock(mock);
+      setAnalysisTime(Math.round(performance.now() - startTime));
     } catch (e) {
       setError("Analysis failed. Please try again.");
     }
@@ -70,6 +75,8 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
     setFileName("");
     setUploadedFile(null);
     setError(null);
+    setUsingMock(false);
+    setAnalysisTime(null);
   }
 
   return (
@@ -219,9 +226,17 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
                 )}
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{detectedFindings.length} finding{detectedFindings.length !== 1 ? "s" : ""} detected</p>
-                  <p className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5 mt-0.5">
-                    <Check size={10} /> Patient saved · Predictions from API
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
+                      <Check size={10} /> Patient saved
+                    </span>
+                    <span className={`text-[10px] font-medium flex items-center gap-0.5 ${usingMock ? "text-amber-500" : "text-emerald-600"}`}>
+                      {usingMock ? "Mock predictions (no model loaded)" : "Real model inference"}
+                    </span>
+                    {analysisTime && (
+                      <span className="text-[10px] text-gray-400">{analysisTime}ms</span>
+                    )}
+                  </div>
                 </div>
               </div>
               {onViewTriage && (
