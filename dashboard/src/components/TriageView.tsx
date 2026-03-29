@@ -124,11 +124,11 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
             <div className="bg-card rounded-2xl border border-border p-4 flex flex-col justify-between">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-muted">STAT Cases</p>
-                <div className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-status-red-subtle flex items-center justify-center">
                   <AlertTriangle size={14} className="text-red-500" />
                 </div>
               </div>
-              <p className="text-5xl font-extrabold text-red-600 dark:text-red-400">{stat}</p>
+              <p className="text-5xl font-extrabold text-status-red">{stat}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp size={11} className="text-red-400" />
                 <span className="text-[11px] text-red-400 font-medium">{Math.round((stat / patients.length) * 100)}%</span>
@@ -140,11 +140,11 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
             <div className="bg-card rounded-2xl border border-border p-4 flex flex-col justify-between">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-muted">Priority Cases</p>
-                <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-status-amber-subtle flex items-center justify-center">
                   <Activity size={14} className="text-amber-500" />
                 </div>
               </div>
-              <p className="text-5xl font-extrabold text-amber-600 dark:text-amber-400">{priority}</p>
+              <p className="text-5xl font-extrabold text-status-amber">{priority}</p>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingDown size={11} className="text-amber-400" />
                 <span className="text-[11px] text-amber-400 font-medium">{Math.round((priority / patients.length) * 100)}%</span>
@@ -244,7 +244,7 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
               const topConf = Math.round((patient.findings[0]?.confidence || 0) * 100);
               const initials = patient.name.split(" ").map(n => n[0]).join("").toUpperCase();
               const tierLabel = TIER_LABELS[tier];
-              const statusColor = tier === 2 ? "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400" : tier === 3 ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400" : tier === 4 ? "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400" : "bg-panel-bg text-muted";
+              const statusColor = tier === 2 ? "bg-status-red-subtle text-status-red" : tier === 3 ? "bg-status-amber-subtle text-status-amber" : tier === 4 ? "bg-status-blue-subtle text-status-blue" : "bg-panel-bg text-muted";
 
               return (
                 <tr
@@ -261,8 +261,8 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
                         {initials}
                       </div>
                       <span className={`text-sm font-medium ${readPatients.has(patient.id) ? "text-muted" : "text-foreground"}`}>{patient.name}</span>
-                      {flaggedPatients.has(patient.id) && <span className="text-[9px] font-bold text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded">FLAGGED</span>}
-                      {readPatients.has(patient.id) && <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded">READ</span>}
+                      {flaggedPatients.has(patient.id) && <span className="text-[9px] font-bold text-status-amber bg-status-amber-subtle px-1.5 py-0.5 rounded">FLAGGED</span>}
+                      {readPatients.has(patient.id) && <span className="text-[9px] font-bold text-status-emerald bg-status-emerald-subtle px-1.5 py-0.5 rounded">READ</span>}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -333,7 +333,7 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
                                 onDeletePatient(patient.id);
                                 setActionMenu(null);
                               }}
-                              className="w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              className="w-full text-left px-3 py-1.5 text-sm text-status-red hover:bg-status-red-subtle"
                             >
                               Delete Patient
                             </button>

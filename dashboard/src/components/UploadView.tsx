@@ -106,7 +106,7 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/30 text-sm text-red-600 dark:text-red-400">
+        <div className="mb-4 p-3 rounded-xl bg-status-red-subtle border border-status-red/20 text-sm text-status-red">
           {error}
         </div>
       )}
@@ -238,14 +238,14 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
             <div className="bg-card rounded-2xl border border-border p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {highestTier === 2 ? (
-                  <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center"><AlertTriangle size={16} className="text-red-500" /></div>
+                  <div className="w-9 h-9 rounded-xl bg-status-red-subtle flex items-center justify-center"><AlertTriangle size={16} className="text-status-red" /></div>
                 ) : (
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center"><Activity size={16} className="text-amber-500" /></div>
+                  <div className="w-9 h-9 rounded-xl bg-status-amber-subtle flex items-center justify-center"><Activity size={16} className="text-status-amber" /></div>
                 )}
                 <div>
                   <p className="text-sm font-semibold text-foreground">{detectedFindings.length} finding{detectedFindings.length !== 1 ? "s" : ""} detected</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className={`text-[10px] font-medium ${usingMock ? "text-amber-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    <span className={`text-[10px] font-medium ${usingMock ? "text-status-amber" : "text-status-emerald"}`}>
                       {usingMock ? "Mock predictions (no model loaded)" : "Real model inference"}
                     </span>
                     {analysisTime && <span className="text-[10px] text-muted">{analysisTime}ms</span>}
@@ -339,8 +339,8 @@ export default function UploadView({ onViewTriage, onPredict, onSave, existingPa
                   <div className="flex justify-between"><span className="text-muted">Age</span><span className="font-medium text-foreground">{patientAge}</span></div>
                   <div className="flex justify-between"><span className="text-muted">Sex</span><span className="font-medium text-foreground">{patientSex}</span></div>
                   {reasonForExam && <div className="flex justify-between"><span className="text-muted">Reason</span><span className="font-medium text-foreground text-right max-w-48">{reasonForExam}</span></div>}
-                  <div className="flex justify-between"><span className="text-muted">Patient ID</span><span className="font-medium text-emerald-600 dark:text-emerald-400">{savedId}</span></div>
-                  <div className="mt-3 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium flex items-center gap-1.5">
+                  <div className="flex justify-between"><span className="text-muted">Patient ID</span><span className="font-medium text-status-emerald">{savedId}</span></div>
+                  <div className="mt-3 p-2 rounded-lg bg-status-emerald-subtle text-status-emerald text-xs font-medium flex items-center gap-1.5">
                     <Check size={12} /> Patient saved successfully
                   </div>
                 </div>

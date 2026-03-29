@@ -81,9 +81,9 @@ export default function RiskCard({ title, percentage, trend, status }: RiskCardP
   }, [percentage, status, isDark]);
 
   const statusBadge = {
-    elevated: { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-500", dot: "bg-red-500", label: "Elevated" },
-    critical: { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-500", dot: "bg-red-500", label: "Critical" },
-    normal: { bg: "bg-green-50 dark:bg-green-950/30", text: "text-green-600 dark:text-green-400", dot: "bg-green-500", label: "Normal" },
+    elevated: { bg: "bg-status-red-subtle", text: "text-status-red", dot: "bg-status-red", label: "Elevated" },
+    critical: { bg: "bg-status-red-subtle", text: "text-status-red", dot: "bg-status-red", label: "Critical" },
+    normal: { bg: "bg-status-emerald-subtle", text: "text-status-emerald", dot: "bg-status-emerald", label: "Normal" },
   }[status];
 
   return (

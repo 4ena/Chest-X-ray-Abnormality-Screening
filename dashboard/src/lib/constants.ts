@@ -19,9 +19,9 @@ export const TIER_LABELS: Record<number, string> = {
 };
 
 export const TIER_STYLES: Record<number, { badge: string; dot: string; row: string }> = {
-  2: { badge: "bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30", dot: "bg-red-500", row: "hover:bg-red-50/40 dark:hover:bg-red-950/20" },
-  3: { badge: "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30", dot: "bg-amber-500", row: "hover:bg-amber-50/40 dark:hover:bg-amber-950/20" },
-  4: { badge: "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30", dot: "bg-blue-500", row: "hover:bg-blue-50/40 dark:hover:bg-blue-950/20" },
+  2: { badge: "bg-status-red-subtle text-status-red border border-status-red/20", dot: "bg-status-red", row: "hover:bg-status-red-subtle/60" },
+  3: { badge: "bg-status-amber-subtle text-status-amber border border-status-amber/20", dot: "bg-status-amber", row: "hover:bg-status-amber-subtle/60" },
+  4: { badge: "bg-status-blue-subtle text-status-blue border border-status-blue/20", dot: "bg-status-blue", row: "hover:bg-status-blue-subtle/60" },
   5: { badge: "bg-panel-bg text-muted border border-border", dot: "bg-muted", row: "hover:bg-panel-bg/40" },
 };
 

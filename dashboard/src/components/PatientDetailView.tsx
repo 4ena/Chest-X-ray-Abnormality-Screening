@@ -251,7 +251,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
               <button
                 onClick={(e) => { e.stopPropagation(); toggleStatus(f.pathology, "confirmed"); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  status === "confirmed" ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : "bg-panel-bg text-muted hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+                  status === "confirmed" ? "bg-status-emerald-subtle text-status-emerald" : "bg-panel-bg text-muted hover:bg-status-emerald-subtle hover:text-status-emerald"
                 }`}
               >
                 <Check size={12} /> {status === "confirmed" ? "Confirmed" : "Confirm"}
@@ -267,7 +267,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
               <button
                 onClick={(e) => { e.stopPropagation(); toggleFlag(f.pathology); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  flagged ? "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" : "bg-panel-bg text-muted hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400"
+                  flagged ? "bg-status-amber-subtle text-status-amber" : "bg-panel-bg text-muted hover:bg-status-amber-subtle hover:text-status-amber"
                 }`}
               >
                 <Flag size={12} /> {flagged ? "Flagged" : "Flag"}

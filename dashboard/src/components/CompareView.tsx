@@ -13,8 +13,17 @@ export default function CompareView({ patients }: { patients: Patient[] }) {
   const [selectedA, setSelectedA] = useState<number>(patients[0]?.id || 1);
   const [selectedB, setSelectedB] = useState<number>(patients[1]?.id || 2);
 
-  const patientA = patients.find(p => p.id === selectedA)!;
-  const patientB = patients.find(p => p.id === selectedB)!;
+  const patientA = patients.find(p => p.id === selectedA);
+  const patientB = patients.find(p => p.id === selectedB);
+
+  if (!patientA || !patientB) {
+    return (
+      <div className="max-w-screen-2xl mx-auto px-8 py-8">
+        <h1 className="text-2xl font-bold text-foreground">Compare Scans</h1>
+        <p className="text-sm text-muted mt-2">Need at least 2 patients to compare.</p>
+      </div>
+    );
+  }
 
   const allPathologies = new Set([
     ...patientA.findings.map(f => f.pathology),
@@ -91,7 +100,7 @@ export default function CompareView({ patients }: { patients: Patient[] }) {
                   <td className="px-6 py-3.5 text-center">
                     {delta !== 0 ? (
                       <span className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-                        delta > 0 ? "bg-red-50 dark:bg-red-950/30 text-red-500" : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400"
+                        delta > 0 ? "bg-status-red-subtle text-status-red" : "bg-status-emerald-subtle text-status-emerald"
                       }`}>
                         {delta > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                         {delta > 0 ? "+" : ""}{delta}%

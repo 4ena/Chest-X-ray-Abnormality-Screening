@@ -69,7 +69,7 @@ export default function TopNav({ activeView, onViewChange, globalSearch, onGloba
           </div>
           <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-panel-bg text-[10px] font-medium">
             <span className={`w-1.5 h-1.5 rounded-full ${apiConnected ? "bg-emerald-500" : "bg-muted"}`} />
-            <span className={apiConnected ? "text-emerald-600 dark:text-emerald-400" : "text-muted"}>{apiConnected ? "API Live" : "Mock"}</span>
+            <span className={apiConnected ? "text-status-emerald" : "text-muted"}>{apiConnected ? "API Live" : "Mock"}</span>
           </div>
           <button
             onClick={toggle}

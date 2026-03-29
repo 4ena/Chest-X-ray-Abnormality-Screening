@@ -418,7 +418,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
                 <button
                   onClick={(e) => { e.stopPropagation(); setStatus(status === "confirmed" ? "pending" : "confirmed"); }}
                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                    status === "confirmed" ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400" : "bg-panel-bg text-muted hover:bg-green-50 dark:hover:bg-green-950/30 hover:text-green-600 dark:hover:text-green-400"
+                    status === "confirmed" ? "bg-status-emerald-subtle text-status-emerald" : "bg-panel-bg text-muted hover:bg-status-emerald-subtle hover:text-status-emerald"
                   }`}
                   title="Confirm finding"
                 >
@@ -440,7 +440,7 @@ function CompactAnnotationCard({ finding, isSelected, onClick, side }: { finding
                 <button
                   onClick={(e) => { e.stopPropagation(); setFlagged(!flagged); }}
                   className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all ${
-                    flagged ? "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400" : "bg-panel-bg text-muted hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-600 dark:hover:text-amber-400"
+                    flagged ? "bg-status-amber-subtle text-status-amber" : "bg-panel-bg text-muted hover:bg-status-amber-subtle hover:text-status-amber"
                   }`}
                   title="Flag for second opinion"
                 >

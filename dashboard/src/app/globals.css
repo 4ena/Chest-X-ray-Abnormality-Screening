@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
   --background: #fafafa;
   --foreground: #111827;
@@ -21,6 +19,15 @@
   --mild-bg: #fefce8;
   --normal: #22c55e;
   --normal-bg: #f0fdf4;
+  /* Semantic status colors */
+  --status-red: #dc2626;
+  --status-red-subtle: #fef2f2;
+  --status-amber: #d97706;
+  --status-amber-subtle: #fffbeb;
+  --status-blue: #2563eb;
+  --status-blue-subtle: #eff6ff;
+  --status-emerald: #059669;
+  --status-emerald-subtle: #ecfdf5;
 }
 
 .dark {
@@ -42,6 +49,15 @@
   --mild-bg: #2a2810;
   --normal: #4ade80;
   --normal-bg: #0a2515;
+  /* Semantic status colors */
+  --status-red: #f87171;
+  --status-red-subtle: rgba(239,68,68,0.12);
+  --status-amber: #fbbf24;
+  --status-amber-subtle: rgba(245,158,11,0.12);
+  --status-blue: #60a5fa;
+  --status-blue-subtle: rgba(59,130,246,0.12);
+  --status-emerald: #34d399;
+  --status-emerald-subtle: rgba(16,185,129,0.12);
 }
 
 @theme inline {
@@ -63,6 +79,14 @@
   --color-mild-bg: var(--mild-bg);
   --color-normal: var(--normal);
   --color-normal-bg: var(--normal-bg);
+  --color-status-red: var(--status-red);
+  --color-status-red-subtle: var(--status-red-subtle);
+  --color-status-amber: var(--status-amber);
+  --color-status-amber-subtle: var(--status-amber-subtle);
+  --color-status-blue: var(--status-blue);
+  --color-status-blue-subtle: var(--status-blue-subtle);
+  --color-status-emerald: var(--status-emerald);
+  --color-status-emerald-subtle: var(--status-emerald-subtle);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -79,7 +103,8 @@ body {
 /* Custom scrollbar — minimal */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
-.dark ::-webkit-scrollbar-thumb { background: #374151; }
-.dark ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+/* Dark scrollbar uses CSS variable so it auto-switches */
+:root { --scrollbar-thumb: #e5e7eb; --scrollbar-thumb-hover: #d1d5db; }
+.dark { --scrollbar-thumb: #374151; --scrollbar-thumb-hover: #4b5563; }
