@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { patients as mockPatients, type Patient, type Finding, type Tier, type TierLabel, CONDITION_TIERS, ACTIVE_CONDITIONS } from "@/data/mock";
+import { type Patient, type Finding, type Tier, type TierLabel, CONDITION_TIERS, ACTIVE_CONDITIONS } from "@/data/mock";
 import { isApiAvailable, listPatients, predictXray, createPatient as apiCreatePatient, type PredictionResponse, type ConditionResult } from "@/lib/api";
 import { TIER_LABELS } from "@/lib/constants";
 
@@ -56,7 +56,8 @@ export interface UsePatients {
     age: number;
     sex: "Male" | "Female";
     reasonForExam: string;
-  }) => Promise<{ predictions: Finding[]; patientId: string }>;
+  }) => Promise<{ predictions: Finding[]; patientId: string; usingMock: boolean }>;
+  deletePatient: (id: number) => void;
   refresh: () => void;
 }
 
@@ -104,28 +105,35 @@ export function usePatients(): UsePatients {
 
   useEffect(() => { fetchFromApi(); }, [fetchFromApi]);
 
-  // Merge: uploaded patients first (newest), then API patients, then mock
-  const allPatients = [...uploadedPatients, ...apiPatients, ...mockPatients];
+  // Only real patients — uploaded + API (no mock data)
+  const allPatients = [...uploadedPatients, ...apiPatients];
 
   // Sort by tier-first, then severity
   allPatients.sort((a, b) => {
-    const tierA = Math.min(...a.findings.map(f => f.tier));
-    const tierB = Math.min(...b.findings.map(f => f.tier));
+    const tierA = a.findings.length > 0 ? Math.min(...a.findings.map(f => f.tier)) : 5;
+    const tierB = b.findings.length > 0 ? Math.min(...b.findings.map(f => f.tier)) : 5;
     if (tierA !== tierB) return tierA - tierB;
     return b.severityScore - a.severityScore;
   });
 
+  const deletePatient = useCallback((id: number) => {
+    setUploadedPatients(prev => prev.filter(p => p.id !== id));
+    setApiPatients(prev => prev.filter(p => p.id !== id));
+  }, []);
+
   const addPatientFromUpload = useCallback(async (data: {
     file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string;
   }) => {
-    // Always call the API for prediction
     let findings: Finding[];
     let patientId: string;
+    let usingMock = false;
 
     try {
       const prediction = await predictXray(data.file);
       findings = prediction.findings.map(apiToFinding);
+      usingMock = prediction.using_mock;
     } catch {
+      usingMock = true;
       // If API predict fails, generate mock findings
       findings = ACTIVE_CONDITIONS.map(name => {
         const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "routine" as TierLabel };
@@ -192,7 +200,7 @@ export function usePatients(): UsePatients {
 
     setUploadedPatients(prev => [newPatient, ...prev]);
 
-    return { predictions: findings, patientId };
+    return { predictions: findings, patientId, usingMock };
   }, []);
 
   return {
@@ -200,6 +208,7 @@ export function usePatients(): UsePatients {
     apiConnected,
     loading,
     addPatientFromUpload,
+    deletePatient,
     refresh: fetchFromApi,
   };
 }
