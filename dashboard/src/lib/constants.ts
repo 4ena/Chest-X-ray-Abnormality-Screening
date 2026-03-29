@@ -5,21 +5,24 @@
 
 // Tier colors — maps to Model_Hospital_Ranking.md
 export const TIER_COLORS: Record<number, string> = {
-  2: "#ef4444",   // Urgent — red
-  3: "#f59e0b",   // Semi-urgent — amber
-  4: "#3b82f6",   // Moderate — blue
+  2: "#ef4444",   // STAT — red
+  3: "#f59e0b",   // PRIORITY — amber
+  4: "#3b82f6",   // ROUTINE — blue
+  5: "#9ca3af",   // NO FINDINGS — gray
 };
 
 export const TIER_LABELS: Record<number, string> = {
   2: "STAT",
   3: "PRIORITY",
   4: "ROUTINE",
+  5: "CLEAR",
 };
 
 export const TIER_STYLES: Record<number, { badge: string; dot: string; row: string }> = {
   2: { badge: "bg-red-50 text-red-600 border border-red-100", dot: "bg-red-500", row: "hover:bg-red-50/40" },
   3: { badge: "bg-amber-50 text-amber-600 border border-amber-100", dot: "bg-amber-500", row: "hover:bg-amber-50/40" },
   4: { badge: "bg-blue-50 text-blue-600 border border-blue-100", dot: "bg-blue-500", row: "hover:bg-blue-50/40" },
+  5: { badge: "bg-gray-50 text-gray-500 border border-gray-100", dot: "bg-gray-400", row: "hover:bg-gray-50/40" },
 };
 
 // Detection threshold — findings below this % are grayed out

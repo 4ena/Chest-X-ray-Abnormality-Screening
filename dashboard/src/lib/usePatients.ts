@@ -110,10 +110,16 @@ export function usePatients(): UsePatients {
   // Only real patients — uploaded + API (no mock data)
   const allPatients = [...uploadedPatients, ...apiPatients];
 
-  // Sort by tier-first, then severity
+  // Sort by tier-first (only detected findings ≥50%), then severity score
+  function getEffectiveTier(p: Patient): number {
+    const detected = p.findings.filter(f => f.confidence >= 0.5);
+    if (detected.length === 0) return 5; // No findings = baseline
+    return Math.min(...detected.map(f => f.tier));
+  }
+
   allPatients.sort((a, b) => {
-    const tierA = a.findings.length > 0 ? Math.min(...a.findings.map(f => f.tier)) : 5;
-    const tierB = b.findings.length > 0 ? Math.min(...b.findings.map(f => f.tier)) : 5;
+    const tierA = getEffectiveTier(a);
+    const tierB = getEffectiveTier(b);
     if (tierA !== tierB) return tierA - tierB;
     return b.severityScore - a.severityScore;
   });

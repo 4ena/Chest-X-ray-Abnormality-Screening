@@ -13,9 +13,11 @@ interface TriageViewProps {
   globalSearch?: string;
 }
 
-function getHighestTier(findings: { tier: number }[]): 2 | 3 | 4 {
-  let highest = 4;
-  for (const f of findings) if (f.tier < highest) highest = f.tier;
+function getHighestTier(findings: { tier: number; confidence: number }[]): 2 | 3 | 4 | 5 {
+  const detected = findings.filter(f => f.confidence >= 0.5);
+  if (detected.length === 0) return 5;
+  let highest = 5;
+  for (const f of detected) if (f.tier < highest) highest = f.tier;
   return highest as 2 | 3 | 4;
 }
 
@@ -89,7 +91,7 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
 
   const stat = patients.filter(p => getHighestTier(p.findings) === 2).length;
   const priority = patients.filter(p => getHighestTier(p.findings) === 3).length;
-  const routine = patients.filter(p => getHighestTier(p.findings) === 4).length;
+  const routine = patients.filter(p => { const t = getHighestTier(p.findings); return t === 4 || t === 5; }).length;
 
   return (
     <div className="max-w-screen-2xl mx-auto px-8 py-8">
@@ -242,7 +244,7 @@ export default function TriageView({ patients, onSelectPatient, onDeletePatient,
               const topConf = Math.round((patient.findings[0]?.confidence || 0) * 100);
               const initials = patient.name.split(" ").map(n => n[0]).join("").toUpperCase();
               const tierLabel = TIER_LABELS[tier];
-              const statusColor = tier === 2 ? "bg-red-50 text-red-600" : tier === 3 ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-blue-600";
+              const statusColor = tier === 2 ? "bg-red-50 text-red-600" : tier === 3 ? "bg-amber-50 text-amber-600" : tier === 4 ? "bg-blue-50 text-blue-600" : "bg-gray-50 text-gray-500";
 
               return (
                 <tr
