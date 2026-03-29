@@ -161,7 +161,7 @@ GET /conditions   → list of supported conditions with tier info
 | ML Teammate | Model training (MobileNetV3-Small), evaluation |
 | Frontend Teammate | Dashboard UI/UX |
 
-## Why This Matters
+## Findings
 
 - Radiologist burnout affects 44-65% of the specialty
 - Workload grew 80% from 2009-2020 with no matching increase in positions
