@@ -18,6 +18,12 @@ def get_model():
 
 def augment_function(img, sizeimg, flipfactor, noisemean, noisesigma, mean=[], std=[]):
     """Data augmentation pipeline from baseline branch."""
+
+    if ((len(mean)<3 or len(mean) >3) or (len(std)<3 or len(std)>3)):
+        print(f"Mean arguments or Standard deviation arguements, expected 3, got {len(mean)} or {len(std)}")
+        raise IndexError
+
+
     transforms = v2.Compose([
         v2.ToImage(),
         v2.RandomResizedCrop(size=(sizeimg, sizeimg), antialias=True),
