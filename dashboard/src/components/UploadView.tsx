@@ -3,9 +3,7 @@
 import { useState, useRef } from "react";
 import { Upload, FileImage, Loader2, AlertTriangle, Activity, Check, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const TIER_COLORS: Record<number, string> = { 2: "#ef4444", 3: "#f59e0b", 4: "#3b82f6" };
-const TIER_LABELS: Record<number, string> = { 2: "URGENT", 3: "SEMI-URGENT", 4: "MODERATE" };
+import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
 const MOCK_RESULTS = [
   { pathology: "Edema", confidence: 0.82, tier: 2 },

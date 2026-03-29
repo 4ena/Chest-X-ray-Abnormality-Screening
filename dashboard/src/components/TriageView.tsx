@@ -1,18 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, AlertTriangle, Clock, Users, Activity, Search } from "lucide-react";
-import { patients, CONDITION_TIERS, ACTIVE_CONDITIONS } from "@/data/mock";
+import { ArrowRight, AlertTriangle, Clock, Users, Activity, Search, Inbox } from "lucide-react";
+import { patients, ACTIVE_CONDITIONS } from "@/data/mock";
+import { TIER_STYLES } from "@/lib/constants";
 
 interface TriageViewProps {
   onSelectPatient: (id: number) => void;
 }
 
-const tierStyles = {
-  2: { badge: "bg-red-50 text-red-600 border border-red-100", dot: "bg-red-500", row: "hover:bg-red-50/40", label: "URGENT" },
-  3: { badge: "bg-amber-50 text-amber-600 border border-amber-100", dot: "bg-amber-500", row: "hover:bg-amber-50/40", label: "SEMI-URGENT" },
-  4: { badge: "bg-blue-50 text-blue-600 border border-blue-100", dot: "bg-blue-500", row: "hover:bg-blue-50/40", label: "MODERATE" },
-};
+import { TIER_LABELS } from "@/lib/constants";
 
 const tierColors: Record<number, string> = { 2: "#ef4444", 3: "#f59e0b", 4: "#3b82f6" };
 
@@ -40,9 +37,9 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
   const [search, setSearch] = useState("");
   const filters = [
     { key: "all", label: "All Patients" },
-    { key: "2", label: "Urgent" },
-    { key: "3", label: "Semi-Urgent" },
-    { key: "4", label: "Moderate" },
+    { key: "2", label: "Stat" },
+    { key: "3", label: "Priority" },
+    { key: "4", label: "Routine" },
   ];
 
   let filtered = filter === "all"
@@ -94,7 +91,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
           </div>
           <div>
             <p className="text-lg font-bold text-red-600">{urgent}</p>
-            <p className="text-[10px] text-muted">Tier 2 — Urgent</p>
+            <p className="text-[10px] text-muted">Tier 2 — Stat</p>
           </div>
         </div>
         <div className="bg-white rounded-xl border border-amber-100 p-3.5 flex items-center gap-3">
@@ -103,7 +100,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
           </div>
           <div>
             <p className="text-lg font-bold text-amber-600">{semiUrgent}</p>
-            <p className="text-[10px] text-muted">Tier 3 — Semi-Urgent</p>
+            <p className="text-[10px] text-muted">Tier 3 — Priority</p>
           </div>
         </div>
         <div className="bg-white rounded-xl border border-blue-100 p-3.5 flex items-center gap-3">
@@ -112,7 +109,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
           </div>
           <div>
             <p className="text-lg font-bold text-blue-600">{moderate}</p>
-            <p className="text-[10px] text-muted">Tier 4 — Moderate</p>
+            <p className="text-[10px] text-muted">Tier 4 — Routine</p>
           </div>
         </div>
       </div>
@@ -164,7 +161,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
           <tbody>
             {filtered.map((patient, idx) => {
               const highestTier = getHighestTier(patient.findings);
-              const styles = tierStyles[highestTier];
+              const styles = TIER_STYLES[highestTier];
               const topConf = patient.findings[0]?.confidence || 0;
 
               return (
@@ -215,7 +212,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                   {/* Tier badge */}
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold tracking-wide ${styles.badge}`}>
-                      {styles.label}
+                      {TIER_LABELS[highestTier]}
                     </span>
                   </td>
 
@@ -228,6 +225,15 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
             })}
           </tbody>
         </table>
+
+        {/* Empty state */}
+        {filtered.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-muted">
+            <Inbox size={40} className="mb-3 opacity-30" />
+            <p className="text-sm font-medium">No patients match your search</p>
+            <p className="text-xs mt-1">Try a different name, ID, or filter</p>
+          </div>
+        )}
       </div>
     </div>
   );
