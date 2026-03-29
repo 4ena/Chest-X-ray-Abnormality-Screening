@@ -6,13 +6,16 @@ import TriageView from "@/components/TriageView";
 import PatientDetailView from "@/components/PatientDetailView";
 import CompareView from "@/components/CompareView";
 import UploadView from "@/components/UploadView";
-import { patients, type Finding } from "@/data/mock";
+import { usePatients } from "@/lib/usePatients";
+import type { Finding } from "@/data/mock";
 
 export default function Home() {
   const [activeView, setActiveView] = useState("triage");
-  const [selectedPatientId, setSelectedPatientId] = useState(patients[0]?.id || 1);
+  const [selectedPatientId, setSelectedPatientId] = useState<number | null>(null);
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [globalSearch, setGlobalSearch] = useState("");
+
+  const { patients, apiConnected, addPatientFromUpload } = usePatients();
 
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
 
@@ -33,18 +36,24 @@ export default function Home() {
         onViewChange={setActiveView}
         globalSearch={globalSearch}
         onGlobalSearchChange={setGlobalSearch}
+        apiConnected={apiConnected}
       />
 
       <main className="flex-1 overflow-hidden">
         {activeView === "triage" && (
           <div className="h-full overflow-y-auto">
-            <TriageView onSelectPatient={handleSelectPatient} globalSearch={globalSearch} />
+            <TriageView
+              patients={patients}
+              onSelectPatient={handleSelectPatient}
+              globalSearch={globalSearch}
+            />
           </div>
         )}
 
-        {activeView === "dashboard" && (
+        {activeView === "dashboard" && patient && (
           <PatientDetailView
             patient={patient}
+            allPatients={patients}
             selectedFinding={selectedFinding}
             onSelectFinding={handleSelectFinding}
             onBack={() => setActiveView("triage")}
@@ -54,13 +63,17 @@ export default function Home() {
 
         {activeView === "compare" && (
           <div className="h-full overflow-y-auto">
-            <CompareView />
+            <CompareView patients={patients} />
           </div>
         )}
 
         {activeView === "upload" && (
           <div className="h-full overflow-y-auto">
-            <UploadView onViewTriage={() => setActiveView("triage")} />
+            <UploadView
+              onViewTriage={() => setActiveView("triage")}
+              onUploadAndPredict={addPatientFromUpload}
+              existingPatients={patients}
+            />
           </div>
         )}
       </main>

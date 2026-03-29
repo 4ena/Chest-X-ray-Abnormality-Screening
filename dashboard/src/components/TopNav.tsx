@@ -15,9 +15,10 @@ interface TopNavProps {
   onViewChange: (view: string) => void;
   globalSearch: string;
   onGlobalSearchChange: (q: string) => void;
+  apiConnected?: boolean;
 }
 
-export default function TopNav({ activeView, onViewChange, globalSearch, onGlobalSearchChange }: TopNavProps) {
+export default function TopNav({ activeView, onViewChange, globalSearch, onGlobalSearchChange, apiConnected }: TopNavProps) {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
       <div className="max-w-screen-2xl mx-auto px-8 flex items-center justify-between h-16">
@@ -62,6 +63,10 @@ export default function TopNav({ activeView, onViewChange, globalSearch, onGloba
               onChange={(e) => { onGlobalSearchChange(e.target.value); if (activeView !== "triage") onViewChange("triage"); }}
               className="pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 w-52"
             />
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-50 text-[10px] font-medium">
+            <span className={`w-1.5 h-1.5 rounded-full ${apiConnected ? "bg-emerald-500" : "bg-gray-300"}`} />
+            <span className={apiConnected ? "text-emerald-600" : "text-gray-400"}>{apiConnected ? "API Live" : "Mock"}</span>
           </div>
           <button className="relative p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
             <Bell size={18} />
