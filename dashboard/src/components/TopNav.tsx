@@ -18,7 +18,7 @@ interface TopNavProps {
 export default function TopNav({ activeView, onViewChange }: TopNavProps) {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      <div className="max-w-[1440px] mx-auto px-6 flex items-center justify-between h-16">
+      <div className="px-8 flex items-center justify-between h-16">
         {/* Brand */}
         <div className="flex items-center gap-8">
           <button onClick={() => onViewChange("triage")} className="flex items-center gap-2.5">
