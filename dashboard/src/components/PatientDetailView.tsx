@@ -15,7 +15,6 @@ interface PatientDetailViewProps {
 }
 
 export default function PatientDetailView({ patient, selectedFinding, onSelectFinding, onBack, onSelectPatient }: PatientDetailViewProps) {
-  const [showHeatmap, setShowHeatmap] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<"xray" | "findings" | "data">("xray");
 
@@ -103,7 +102,7 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
         {/* Tab content */}
         <div className="p-6">
           {activeTab === "xray" && (
-            <XrayPanel patient={patient} showHeatmap={showHeatmap} setShowHeatmap={setShowHeatmap} imageLoaded={imageLoaded} setImageLoaded={setImageLoaded} selectedFinding={selectedFinding} onSelectFinding={onSelectFinding} />
+            <XrayPanel patient={patient} imageLoaded={imageLoaded} setImageLoaded={setImageLoaded} selectedFinding={selectedFinding} onSelectFinding={onSelectFinding} />
           )}
           {activeTab === "findings" && (
             <FindingsPanel patient={patient} selectedFinding={selectedFinding} onSelectFinding={onSelectFinding} />
@@ -124,8 +123,8 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
 }
 
 /* ── X-ray Panel (center) ── */
-function XrayPanel({ patient, showHeatmap, setShowHeatmap, imageLoaded, setImageLoaded, selectedFinding, onSelectFinding }: {
-  patient: Patient; showHeatmap: boolean; setShowHeatmap: (v: boolean) => void;
+function XrayPanel({ patient, imageLoaded, setImageLoaded, selectedFinding, onSelectFinding }: {
+  patient: Patient;
   imageLoaded: boolean; setImageLoaded: (v: boolean) => void;
   selectedFinding: Finding | null; onSelectFinding: (f: Finding) => void;
 }) {
@@ -150,14 +149,6 @@ function XrayPanel({ patient, showHeatmap, setShowHeatmap, imageLoaded, setImage
         <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-lg">
           {patient.view} · {patient.apPa}
         </div>
-        <button
-          onClick={() => setShowHeatmap(!showHeatmap)}
-          className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
-            showHeatmap ? "bg-white text-gray-900" : "bg-black/50 text-white backdrop-blur-sm"
-          }`}
-        >
-          {showHeatmap ? "Heatmap On" : "Heatmap Off"}
-        </button>
       </div>
 
       {/* All 5 conditions — animated bars */}
