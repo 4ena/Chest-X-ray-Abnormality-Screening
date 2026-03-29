@@ -8,6 +8,7 @@ import PriorityChart from "@/components/PriorityChart";
 
 interface TriageViewProps {
   onSelectPatient: (id: number) => void;
+  globalSearch?: string;
 }
 
 function getHighestTier(findings: { tier: number }[]): 2 | 3 | 4 {
@@ -51,12 +52,14 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-export default function TriageView({ onSelectPatient }: TriageViewProps) {
+export default function TriageView({ onSelectPatient, globalSearch = "" }: TriageViewProps) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [actionMenu, setActionMenu] = useState<number | null>(null);
+  const [flaggedPatients, setFlaggedPatients] = useState<Set<number>>(new Set());
+  const [readPatients, setReadPatients] = useState<Set<number>>(new Set());
 
   const filters = [
     { key: "all", label: "All Patients" },
@@ -69,8 +72,9 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
     ? patients
     : patients.filter(p => getHighestTier(p.findings) === Number(filter));
 
-  if (search.trim()) {
-    const q = search.toLowerCase();
+  const activeSearch = globalSearch.trim() || search.trim();
+  if (activeSearch) {
+    const q = activeSearch.toLowerCase();
     filtered = filtered.filter(p =>
       p.name.toLowerCase().includes(q) ||
       String(p.id).padStart(5, "0").includes(q) ||
@@ -252,7 +256,9 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                       <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center">
                         {initials}
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{patient.name}</span>
+                      <span className={`text-sm font-medium ${readPatients.has(patient.id) ? "text-gray-400" : "text-gray-900"}`}>{patient.name}</span>
+                      {flaggedPatients.has(patient.id) && <span className="text-[9px] font-bold text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded">FLAGGED</span>}
+                      {readPatients.has(patient.id) && <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded">READ</span>}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -297,16 +303,24 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                             View Details
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); setActionMenu(null); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFlaggedPatients(prev => { const next = new Set(prev); next.has(patient.id) ? next.delete(patient.id) : next.add(patient.id); return next; });
+                              setActionMenu(null);
+                            }}
                             className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
                           >
-                            Flag for Review
+                            {flaggedPatients.has(patient.id) ? "Unflag" : "Flag for Review"}
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); setActionMenu(null); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReadPatients(prev => { const next = new Set(prev); next.add(patient.id); return next; });
+                              setActionMenu(null);
+                            }}
                             className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
                           >
-                            Mark as Read
+                            {readPatients.has(patient.id) ? "Already Read" : "Mark as Read"}
                           </button>
                         </div>
                       )}

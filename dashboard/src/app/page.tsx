@@ -12,6 +12,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState("triage");
   const [selectedPatientId, setSelectedPatientId] = useState(patients[0]?.id || 1);
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
+  const [globalSearch, setGlobalSearch] = useState("");
 
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
 
@@ -27,12 +28,17 @@ export default function Home() {
 
   return (
     <div className="h-screen bg-gray-100/50 flex flex-col overflow-hidden">
-      <TopNav activeView={activeView} onViewChange={setActiveView} />
+      <TopNav
+        activeView={activeView}
+        onViewChange={setActiveView}
+        globalSearch={globalSearch}
+        onGlobalSearchChange={setGlobalSearch}
+      />
 
       <main className="flex-1 overflow-hidden">
         {activeView === "triage" && (
           <div className="h-full overflow-y-auto">
-            <TriageView onSelectPatient={handleSelectPatient} />
+            <TriageView onSelectPatient={handleSelectPatient} globalSearch={globalSearch} />
           </div>
         )}
 
