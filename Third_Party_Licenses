@@ -1,0 +1,154 @@
+# Third-Party Notices
+
+This project uses the following open-source libraries and datasets.
+Each is listed with its license and required attribution.
+
+---
+
+## TorchXRayVision
+
+- **Used in:** `tools/batch_inference.py`
+- **License:** Apache License 2.0
+- **Source:** https://github.com/mlmed/torchxrayvision
+- **Citation (required by authors):**
+
+```bibtex
+@inproceedings{Cohen2022xrv,
+    title = {{TorchXRayVision: A library of chest X-ray datasets and models}},
+    author = {Cohen, Joseph Paul and Viviano, Joseph D. and Bertin, Paul
+              and Morrison, Paul and Torabian, Parsa and Guarrera, Matteo
+              and Lungren, Matthew P and Chaudhari, Akshay and Brooks, Rupert
+              and Hashir, Mohammad and Bertrand, Hadrien},
+    booktitle = {Medical Imaging with Deep Learning},
+    url = {https://github.com/mlmed/torchxrayvision},
+    arxivId = {2111.00595},
+    year = {2022}
+}
+```
+
+```bibtex
+@inproceedings{cohen2020limits,
+    title = {On the limits of cross-domain generalization in automated X-ray prediction},
+    author = {Cohen, Joseph Paul and Hashir, Mohammad and Brooks, Rupert
+              and Bertrand, Hadrien},
+    booktitle = {Medical Imaging with Deep Learning},
+    year = {2020},
+    url = {https://arxiv.org/abs/2002.02497}
+}
+```
+
+---
+
+## PyTorch
+
+- **Used in:** `tools/batch_inference.py`, `src/`
+- **License:** BSD 3-Clause
+- **Source:** https://github.com/pytorch/pytorch
+- **Copyright:** Copyright (c) 2016-present, Facebook, Inc. All rights reserved.
+
+---
+
+## TorchVision
+
+- **Used in:** `tools/batch_inference.py`, `src/`
+- **License:** BSD 3-Clause
+- **Source:** https://github.com/pytorch/vision
+- **Copyright:** Copyright (c) 2016, Soumith Chintala. All rights reserved.
+
+---
+
+## scikit-image
+
+- **Used in:** `tools/batch_inference.py`
+- **License:** BSD 3-Clause
+- **Source:** https://github.com/scikit-image/scikit-image
+- **Copyright:** Copyright (c) 2009-2022, the scikit-image team. All rights reserved.
+
+---
+
+## NumPy
+
+- **Used in:** throughout
+- **License:** BSD 3-Clause
+- **Source:** https://github.com/numpy/numpy
+- **Copyright:** Copyright (c) 2005-2023, NumPy Developers. All rights reserved.
+
+---
+
+## FastAPI
+
+- **Used in:** `api/`
+- **License:** MIT
+- **Source:** https://github.com/tiangolo/fastapi
+- **Copyright:** Copyright (c) 2018 Sebastián Ramírez
+
+---
+
+## Next.js
+
+- **Used in:** `dashboard/`
+- **License:** MIT
+- **Source:** https://github.com/vercel/next.js
+- **Copyright:** Copyright (c) 2024 Vercel, Inc.
+
+---
+
+## React
+
+- **Used in:** `dashboard/`
+- **License:** MIT
+- **Source:** https://github.com/facebook/react
+- **Copyright:** Copyright (c) Meta Platforms, Inc. and affiliates.
+
+---
+
+## Framer Motion
+
+- **Used in:** `dashboard/`
+- **License:** MIT
+- **Source:** https://github.com/framer/motion
+- **Copyright:** Copyright (c) 2018 Framer B.V.
+
+---
+
+## Recharts
+
+- **Used in:** `dashboard/`
+- **License:** MIT
+- **Source:** https://github.com/recharts/recharts
+- **Copyright:** Copyright (c) 2015-present recharts
+
+---
+
+## Tailwind CSS
+
+- **Used in:** `dashboard/`
+- **License:** MIT
+- **Source:** https://github.com/tailwindlabs/tailwindcss
+- **Copyright:** Copyright (c) Tailwind Labs, Inc.
+
+---
+
+## Datasets
+
+### NIH Chest X-ray Dataset
+- **License:** CC0 1.0 Universal (Public Domain)
+- **Source:** https://www.kaggle.com/datasets/nih-chest-xrays/data
+- **Citation:** Wang et al., "ChestX-ray8: Hospital-scale Chest X-ray Database
+  and Benchmarks." IEEE CVPR, 2017.
+
+### CheXpert (Stanford)
+- **Note:** The batch inference tool uses pretrained model weights that were
+  trained on CheXpert data. The weights are distributed by TorchXRayVision
+  under Apache 2.0. We do not redistribute the CheXpert dataset itself.
+- **Source:** https://stanfordmlgroup.github.io/competitions/chexpert/
+- **Citation:** Irvin et al., "CheXpert: A Large Chest Radiograph Dataset with
+  Uncertainty Labels and Expert Comparison." AAAI, 2019.
+
+---
+
+## AI Tools Disclosure (MLH Requirement)
+
+This project used AI coding assistants during development, including
+Anthropic Claude for code generation, debugging, and documentation.
+As required by MLH hackathon rules, this is disclosed transparently.
