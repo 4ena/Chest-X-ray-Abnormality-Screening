@@ -50,6 +50,9 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Remove Recharts focus outline on click */
+.recharts-surface, .recharts-wrapper { outline: none !important; }
+
 /* Custom scrollbar — minimal */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
