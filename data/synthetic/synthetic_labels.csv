@@ -1,11 +1,11 @@
 Path, Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion
-Synthetic\synth01.jpg,0,0,0,0,0
-Synthetic\synth02.jpeg,0,0,0,0,0
-Synthetic\synth03.jpg,1,1,1,1,1
-Synthetic\synth04.jpg,0,0,0,0,0
-Synthetic\synth05.jpg,0,0,0,0,0
-Synthetic\synth06.jpg,1,1,1,1,1
-Synthetic\synth07.jpg,1,1,1,1,1
-Synthetic\synth08.jpg,1,1,1,1,1
-Synthetic\synth09.jpg,0,0,1,1,0
-Synthetic\synth10.jpg,0,0,1,1,0
+synthetic/synth01.jpg,0,0,0,0,0
+synthetic/synth02.jpeg,0,0,0,0,0
+synthetic/synth03.jpg,1,1,1,1,1
+synthetic/synth04.jpg,0,0,0,0,0
+synthetic/synth05.jpg,0,0,0,0,0
+synthetic/synth06.jpg,1,1,1,1,1
+synthetic/synth07.jpg,1,1,1,1,1
+synthetic/synth08.jpg,1,1,1,1,1
+synthetic/synth09.jpg,0,0,1,1,0
+synthetic/synth10.jpg,0,0,1,1,0
