@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 interface PriorityChartProps {
   stat: number;
@@ -9,42 +9,21 @@ interface PriorityChartProps {
 }
 
 const COLORS = ["#1f2937", "#6b7280", "#d1d5db"];
-const LABELS = ["STAT", "PRIORITY", "ROUTINE"];
-const DESCRIPTIONS = [
-  "Immediate read required — life-threatening findings",
-  "Read before routine — clinically significant",
-  "Standard queue — lower acuity findings",
-];
-
-function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { index: number } }> }) {
-  if (!active || !payload?.length) return null;
-  const item = payload[0];
-  const idx = item.payload.index;
-
-  return (
-    <div className="bg-gray-900 text-white rounded-lg px-3 py-2 text-xs shadow-xl border-0 outline-0" style={{ border: "none", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}>
-      <p className="font-semibold">{LABELS[idx]}: {item.value} patients</p>
-      <p className="text-gray-300 mt-0.5 leading-relaxed">{DESCRIPTIONS[idx]}</p>
-    </div>
-  );
-}
 
 export default function PriorityChart({ stat, priority, routine }: PriorityChartProps) {
   const data = [
-    { name: "STAT", value: stat, index: 0 },
-    { name: "PRIORITY", value: priority, index: 1 },
-    { name: "ROUTINE", value: routine, index: 2 },
+    { name: "STAT", value: stat },
+    { name: "PRIORITY", value: priority },
+    { name: "ROUTINE", value: routine },
   ];
 
   const total = stat + priority + routine;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col">
-      <div className="flex items-center justify-between mb-1">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Priority Distribution</h3>
-          <p className="text-xs text-gray-400 mt-0.5">Click segments for details</p>
-        </div>
+      <div className="mb-1">
+        <h3 className="text-sm font-semibold text-gray-900">Priority Distribution</h3>
+        <p className="text-xs text-gray-400 mt-0.5">By triage tier</p>
       </div>
 
       <div className="flex-1 flex items-center justify-center">
@@ -60,13 +39,11 @@ export default function PriorityChart({ stat, priority, routine }: PriorityChart
                 paddingAngle={3}
                 dataKey="value"
                 strokeWidth={0}
-                cursor="pointer"
               >
                 {data.map((_, i) => (
                   <Cell key={i} fill={COLORS[i]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} wrapperStyle={{ outline: "none", border: "none" }} />
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
