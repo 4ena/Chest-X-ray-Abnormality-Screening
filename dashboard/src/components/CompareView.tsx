@@ -167,6 +167,19 @@ function PatientCard({ patient, label }: { patient: Patient; label: string }) {
           </span>
         </div>
 
+        {/* X-ray image */}
+        <div className="bg-gray-950 rounded-xl overflow-hidden mb-4 relative" style={{ height: 220 }}>
+          <img
+            src={patient.xrayImageUrl}
+            alt={`X-ray for ${patient.name}`}
+            className="w-full h-full object-contain"
+            style={{ filter: "brightness(1.1) contrast(1.1)" }}
+          />
+          <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium px-2 py-0.5 rounded">
+            {patient.view} · {patient.apPa}
+          </div>
+        </div>
+
         {/* Info grid with icons */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
