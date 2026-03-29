@@ -82,28 +82,19 @@ export const ACTIVE_CONDITIONS = [
 //   "Hernia",
 // ];
 
-// Sample chest X-ray images from Wikimedia Commons (public domain)
+// Sample chest X-ray images — local copies for instant demo loading
+// Originals from Wikimedia Commons (public domain, CC0)
 const SAMPLE_XRAY_URLS = [
-  "https://upload.wikimedia.org/wikipedia/commons/a/a1/Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/7/7a/Cardiomegally.PNG",
-  "https://upload.wikimedia.org/wikipedia/commons/e/e7/Pleural_effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/b/bb/Atelectasia.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/2/2f/Pneumothorax_CXR.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/3/34/Bilateral_Pleural_Effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/d/d5/Cardiomegalia.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/6/6b/Medical_X-Ray_imaging_AFJ02_nevit.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/9/9f/Chest_X-ray_of_pneumothorax.png",
-  "https://upload.wikimedia.org/wikipedia/commons/5/57/Left-sided_Pleural_Effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/c/cb/02-01-Infiltrat_pa.png",
-  "https://upload.wikimedia.org/wikipedia/commons/f/ff/Effusion.png",
-  "https://upload.wikimedia.org/wikipedia/commons/2/25/09-01-Pneumothorax.png",
-  "https://upload.wikimedia.org/wikipedia/commons/8/8d/Atelectasia1.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/b/ba/05-Spontanpneumothorax.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/d/df/Unilateral_Pleural_Effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/8/8c/Rad_1300124.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/2/2d/Oberlappenatelektase_links_pa.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/a/ac/PneumonisWedge09.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/3/30/Effusionhalf.PNG",
+  "/sample-xrays/xray_normal.jpg",
+  "/sample-xrays/xray_cardiomegaly_01.png",
+  "/sample-xrays/xray_effusion_01.jpg",
+  "/sample-xrays/xray_atelectasis_01.jpg",
+  "/sample-xrays/xray_effusion_bilateral.jpg",
+  "/sample-xrays/xray_cardiomegaly_02.jpg",
+  "/sample-xrays/xray_consolidation_01.jpg",
+  "/sample-xrays/xray_effusion_left.jpg",
+  "/sample-xrays/xray_consolidation_02.jpg",
+  "/sample-xrays/xray_effusion_unilateral.jpg",
 ];
 
 // Anatomical regions on the X-ray for heatmap marker placement
