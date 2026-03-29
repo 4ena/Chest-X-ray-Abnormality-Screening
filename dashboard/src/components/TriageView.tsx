@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { Search, SlidersHorizontal, Download, MoreHorizontal, TrendingUp, TrendingDown, ChevronLeft, ChevronRight, AlertTriangle, Activity, Shield } from "lucide-react";
-import { patients, ACTIVE_CONDITIONS } from "@/data/mock";
+import { type Patient } from "@/data/mock";
 import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 import PriorityChart from "@/components/PriorityChart";
 
 interface TriageViewProps {
+  patients: Patient[];
   onSelectPatient: (id: number) => void;
   globalSearch?: string;
 }
@@ -30,7 +31,7 @@ function timeSinceAdmission(dateStr: string): string {
 
 const PAGE_SIZE = 10;
 
-function exportCSV() {
+function exportCSV(patients: Patient[]) {
   const headers = ["ID", "Name", "Age", "Sex", "Tier", "Top Finding", "Confidence", "Admitted"];
   const rows = patients.map(p => [
     `P${String(p.id).padStart(3, "0")}`,
@@ -52,7 +53,7 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-export default function TriageView({ onSelectPatient, globalSearch = "" }: TriageViewProps) {
+export default function TriageView({ patients, onSelectPatient, globalSearch = "" }: TriageViewProps) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -200,7 +201,7 @@ export default function TriageView({ onSelectPatient, globalSearch = "" }: Triag
             </div>
             {/* Export button */}
             <button
-              onClick={exportCSV}
+              onClick={() => exportCSV(patients)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
               <Download size={14} />

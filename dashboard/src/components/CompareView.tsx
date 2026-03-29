@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { ArrowLeftRight, User, Calendar, Eye, Activity, Heart, Wind, ChevronDown, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { patients, type Patient } from "@/data/mock";
+import type { Patient } from "@/data/mock";
 import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
 function getHighestTier(p: Patient): number {
   return Math.min(...p.findings.map(f => f.tier));
 }
 
-export default function CompareView() {
+export default function CompareView({ patients }: { patients: Patient[] }) {
   const [selectedA, setSelectedA] = useState<number>(patients[0]?.id || 1);
   const [selectedB, setSelectedB] = useState<number>(patients[1]?.id || 2);
 
@@ -31,11 +31,11 @@ export default function CompareView() {
 
       {/* Patient selectors */}
       <div className="flex items-center gap-4 mb-8">
-        <PatientSelector value={selectedA} onChange={setSelectedA} label="Patient A" />
+        <PatientSelector value={selectedA} onChange={setSelectedA} label="Patient A" patients={patients} />
         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
           <ArrowLeftRight size={16} className="text-gray-400" />
         </div>
-        <PatientSelector value={selectedB} onChange={setSelectedB} label="Patient B" />
+        <PatientSelector value={selectedB} onChange={setSelectedB} label="Patient B" patients={patients} />
       </div>
 
       {/* Comparison grid */}
@@ -119,7 +119,7 @@ export default function CompareView() {
 }
 
 /* ── Patient Selector dropdown ── */
-function PatientSelector({ value, onChange, label }: { value: number; onChange: (id: number) => void; label: string }) {
+function PatientSelector({ value, onChange, label, patients }: { value: number; onChange: (id: number) => void; label: string; patients: Patient[] }) {
   return (
     <div className="flex-1">
       <label className="text-[11px] text-gray-400 uppercase tracking-wider font-medium mb-1.5 block">{label}</label>
