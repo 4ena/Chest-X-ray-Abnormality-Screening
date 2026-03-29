@@ -8,11 +8,12 @@ import type { Patient, Finding } from "@/data/mock";
 
 interface UploadViewProps {
   onViewTriage?: () => void;
-  onUploadAndPredict: (data: { file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string }) => Promise<{ predictions: Finding[]; patientId: string; usingMock: boolean }>;
+  onPredict: (file: File) => Promise<{ predictions: Finding[]; usingMock: boolean }>;
+  onSave: (data: { file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string; findings: Finding[] }) => Promise<string>;
   existingPatients: Patient[];
 }
 
-export default function UploadView({ onViewTriage, onUploadAndPredict, existingPatients }: UploadViewProps) {
+export default function UploadView({ onViewTriage, onPredict, onSave, existingPatients }: UploadViewProps) {
   const [dragging, setDragging] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [results, setResults] = useState<Finding[] | null>(null);
@@ -28,13 +29,11 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [usingMock, setUsingMock] = useState(false);
   const [analysisTime, setAnalysisTime] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Step 1: Upload and predict only (no save)
   async function handleFile(file: File) {
-    if (!patientName.trim() || !patientAge.trim()) {
-      setError("Please fill in patient name and age before uploading.");
-      return;
-    }
     setError(null);
     setFileName(file.name);
     setPreviewUrl(URL.createObjectURL(file));
@@ -45,21 +44,40 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
 
     const startTime = performance.now();
     try {
-      const { predictions, patientId, usingMock: mock } = await onUploadAndPredict({
-        file,
+      const { predictions, usingMock: mock } = await onPredict(file);
+      setResults(predictions);
+      setUsingMock(mock);
+      setAnalysisTime(Math.round(performance.now() - startTime));
+    } catch {
+      setError("Analysis failed. Please try again.");
+    }
+    setAnalyzing(false);
+  }
+
+  // Step 2: Save (user clicks Save button)
+  async function handleSave() {
+    if (!patientName.trim() || !patientAge.trim()) {
+      setError("Please fill in patient name and age to save.");
+      return;
+    }
+    if (!uploadedFile || !results) return;
+    setError(null);
+    setSaving(true);
+
+    try {
+      const patientId = await onSave({
+        file: uploadedFile,
         name: patientName.trim(),
         age: parseInt(patientAge),
         sex: patientSex,
         reasonForExam,
+        findings: results,
       });
-      setResults(predictions);
-      setSavedId(patientId); // Auto-saved
-      setUsingMock(mock);
-      setAnalysisTime(Math.round(performance.now() - startTime));
-    } catch (e) {
-      setError("Analysis failed. Please try again.");
+      setSavedId(patientId);
+    } catch {
+      setError("Failed to save patient. Please try again.");
     }
-    setAnalyzing(false);
+    setSaving(false);
   }
 
   const hasResults = results !== null;
@@ -77,6 +95,7 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
     setError(null);
     setUsingMock(false);
     setAnalysisTime(null);
+    setSaving(false);
   }
 
   return (
@@ -133,8 +152,7 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
             <div className="mb-4">
               <label className="text-xs text-gray-400 block mb-1.5">Assign to Existing Patient</label>
               <div className="relative">
-                <select
-                  value={selectedPatient}
+                <select value={selectedPatient}
                   onChange={(e) => {
                     setSelectedPatient(e.target.value);
                     if (e.target.value) {
@@ -142,8 +160,7 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
                       if (p) { setPatientName(p.name); setPatientAge(String(p.age)); setPatientSex(p.sex); }
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10 appearance-none"
-                >
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10 appearance-none">
                   <option value="">— New Patient —</option>
                   {existingPatients.map(p => (
                     <option key={p.id} value={p.id}>{p.name} (P{String(p.id).padStart(3, "0")})</option>
@@ -156,13 +173,13 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div>
                 <label className="text-xs text-gray-400 block mb-1">Full Name <span className="text-red-400">*</span></label>
-                <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Enter patient name" required
+                <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Enter patient name"
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
-                  <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)} placeholder="Age" required
+                  <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)} placeholder="Age"
                     className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
                 </div>
                 <div>
@@ -215,8 +232,9 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
             </div>
           </div>
 
-          {/* Right: results + patient info */}
+          {/* Right: results + patient info + save */}
           <div className="overflow-y-auto space-y-4">
+            {/* Summary */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {highestTier === 2 ? (
@@ -227,19 +245,14 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{detectedFindings.length} finding{detectedFindings.length !== 1 ? "s" : ""} detected</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
-                      <Check size={10} /> Patient saved
-                    </span>
-                    <span className={`text-[10px] font-medium flex items-center gap-0.5 ${usingMock ? "text-amber-500" : "text-emerald-600"}`}>
+                    <span className={`text-[10px] font-medium ${usingMock ? "text-amber-500" : "text-emerald-600"}`}>
                       {usingMock ? "Mock predictions (no model loaded)" : "Real model inference"}
                     </span>
-                    {analysisTime && (
-                      <span className="text-[10px] text-gray-400">{analysisTime}ms</span>
-                    )}
+                    {analysisTime && <span className="text-[10px] text-gray-400">{analysisTime}ms</span>}
                   </div>
                 </div>
               </div>
-              {onViewTriage && (
+              {savedId && onViewTriage && (
                 <button onClick={onViewTriage}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors">
                   View in Queue <ArrowRight size={12} />
@@ -277,18 +290,61 @@ export default function UploadView({ onViewTriage, onUploadAndPredict, existingP
               </div>
             </div>
 
-            {/* Patient details */}
+            {/* Patient details — editable before save */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <User size={14} className="text-gray-400" /> Patient Details
               </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{patientName}</span></div>
-                <div className="flex justify-between"><span className="text-gray-400">Age</span><span className="font-medium text-gray-900">{patientAge}</span></div>
-                <div className="flex justify-between"><span className="text-gray-400">Sex</span><span className="font-medium text-gray-900">{patientSex}</span></div>
-                {reasonForExam && <div className="flex justify-between"><span className="text-gray-400">Reason</span><span className="font-medium text-gray-900 text-right max-w-48">{reasonForExam}</span></div>}
-                {savedId && <div className="flex justify-between"><span className="text-gray-400">Patient ID</span><span className="font-medium text-emerald-600">{savedId}</span></div>}
-              </div>
+              {!savedId ? (
+                <>
+                  <div className="space-y-3 mb-4">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Name <span className="text-red-400">*</span></label>
+                      <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Patient name"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
+                        <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
+                        <select value={patientSex} onChange={e => setPatientSex(e.target.value as "Male" | "Female")}
+                          className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                          <option>Male</option>
+                          <option>Female</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Reason for Exam</label>
+                      <input type="text" value={reasonForExam} onChange={e => setReasonForExam(e.target.value)} placeholder="Clinical indication"
+                        className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !patientName.trim() || !patientAge.trim()}
+                    className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    {saving ? "Saving..." : "Save Patient Record"}
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{patientName}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Age</span><span className="font-medium text-gray-900">{patientAge}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-400">Sex</span><span className="font-medium text-gray-900">{patientSex}</span></div>
+                  {reasonForExam && <div className="flex justify-between"><span className="text-gray-400">Reason</span><span className="font-medium text-gray-900 text-right max-w-48">{reasonForExam}</span></div>}
+                  <div className="flex justify-between"><span className="text-gray-400">Patient ID</span><span className="font-medium text-emerald-600">{savedId}</span></div>
+                  <div className="mt-3 p-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium flex items-center gap-1.5">
+                    <Check size={12} /> Patient saved successfully
+                  </div>
+                </div>
+              )}
             </div>
 
             <button onClick={reset}

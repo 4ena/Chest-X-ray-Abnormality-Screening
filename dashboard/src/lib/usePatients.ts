@@ -50,13 +50,15 @@ export interface UsePatients {
   patients: Patient[];
   apiConnected: boolean;
   loading: boolean;
-  addPatientFromUpload: (data: {
+  predictImage: (file: File) => Promise<{ predictions: Finding[]; usingMock: boolean }>;
+  savePatient: (data: {
     file: File;
     name: string;
     age: number;
     sex: "Male" | "Female";
     reasonForExam: string;
-  }) => Promise<{ predictions: Finding[]; patientId: string; usingMock: boolean }>;
+    findings: Finding[];
+  }) => Promise<string>;
   deletePatient: (id: number) => void;
   refresh: () => void;
 }
@@ -127,77 +129,58 @@ export function usePatients(): UsePatients {
     }
   }, [uploadedPatients, apiPatients]);
 
-  const addPatientFromUpload = useCallback(async (data: {
-    file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string;
-  }) => {
-    let findings: Finding[];
-    let patientId: string;
-    let usingMock = false;
-
+  // Step 1: Just run inference — no save
+  const predictImage = useCallback(async (file: File): Promise<{ predictions: Finding[]; usingMock: boolean }> => {
     try {
-      const prediction = await predictXray(data.file);
-      findings = prediction.findings.map(apiToFinding);
-      usingMock = prediction.using_mock;
+      const prediction = await predictXray(file);
+      return { predictions: prediction.findings.map(apiToFinding), usingMock: prediction.using_mock };
     } catch {
-      usingMock = true;
-      // If API predict fails, generate mock findings
-      findings = ACTIVE_CONDITIONS.map(name => {
+      const predictions = ACTIVE_CONDITIONS.map(name => {
         const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "routine" as TierLabel };
         const info = EXPLANATIONS[name] || { explanation: "", clinicalNote: "" };
         const conf = Math.round(Math.random() * 70 + 15) / 100;
         return {
-          pathology: name,
-          confidence: conf,
+          pathology: name, confidence: conf,
           severity: conf >= 0.7 ? "critical" as const : conf >= 0.45 ? "moderate" as const : conf >= 0.25 ? "mild" as const : "normal" as const,
-          tier: tierInfo.tier,
-          tierLabel: tierInfo.label,
-          explanation: info.explanation,
-          clinicalNote: info.clinicalNote,
+          tier: tierInfo.tier, tierLabel: tierInfo.label,
+          explanation: info.explanation, clinicalNote: info.clinicalNote,
         };
       }).sort((a, b) => b.confidence - a.confidence);
+      return { predictions, usingMock: true };
     }
+  }, []);
 
-    // Try to save patient to API
+  // Step 2: Save patient to API + local state (user clicks Save)
+  const savePatient = useCallback(async (data: {
+    file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string; findings: Finding[];
+  }): Promise<string> => {
+    let patientId: string;
+
     try {
       const record = await apiCreatePatient({
-        name: data.name,
-        age: data.age,
-        sex: data.sex,
+        name: data.name, age: data.age, sex: data.sex,
         reason_for_exam: data.reasonForExam,
-        findings: findings.map(f => ({
-          pathology: f.pathology,
-          confidence: f.confidence,
-          tier: f.tier,
-          tier_label: f.tierLabel,
-          detected: f.confidence >= 0.5,
+        findings: data.findings.map(f => ({
+          pathology: f.pathology, confidence: f.confidence, tier: f.tier,
+          tier_label: f.tierLabel, detected: f.confidence >= 0.5,
         })),
-        severity_score: findings.reduce((sum, f) => sum + f.confidence, 0) / findings.length,
-        highest_tier: (() => { const tiers = findings.filter(f => f.confidence >= 0.5).map(f => f.tier); return tiers.length > 0 ? Math.min(...tiers) : 5; })(),
+        severity_score: data.findings.reduce((sum, f) => sum + f.confidence, 0) / data.findings.length,
+        highest_tier: (() => { const tiers = data.findings.filter(f => f.confidence >= 0.5).map(f => f.tier); return tiers.length > 0 ? Math.min(...tiers) : 5; })(),
       });
       patientId = record.id;
     } catch {
       patientId = `P${String(++nextMockId).padStart(5, "0")}`;
     }
 
-    // Create patient object for the dashboard
     const previewUrl = URL.createObjectURL(data.file);
-    const severityScore = findings.reduce((sum, f) => sum + f.confidence, 0) / findings.length;
+    const severityScore = data.findings.reduce((sum, f) => sum + f.confidence, 0) / data.findings.length;
 
     const newPatient: Patient = {
-      id: nextMockId++,
-      apiId: patientId,
-      name: data.name,
-      age: data.age,
-      sex: data.sex,
-      admissionDate: new Date().toISOString().split("T")[0],
-      view: "Frontal",
-      apPa: "AP",
-      reasonForExam: data.reasonForExam,
-      priorStudies: 0,
-      findings,
-      severityScore,
+      id: nextMockId++, apiId: patientId, name: data.name, age: data.age, sex: data.sex,
+      admissionDate: new Date().toISOString().split("T")[0], view: "Frontal", apPa: "AP",
+      reasonForExam: data.reasonForExam, priorStudies: 0, findings: data.findings, severityScore,
       severityLevel: severityScore >= 0.7 ? "critical" : severityScore >= 0.45 ? "moderate" : severityScore >= 0.25 ? "mild" : "normal",
-      topFinding: findings[0]?.pathology || "No Finding",
+      topFinding: data.findings[0]?.pathology || "No Finding",
       lungIndex: Math.floor(Math.random() * 40 + 60),
       inflammation: severityScore >= 0.6 ? "High" : severityScore >= 0.35 ? "Medium" : "Low",
       ventilation: severityScore >= 0.6 ? "Compromised" : severityScore >= 0.35 ? "Impaired" : "Healthy",
@@ -206,15 +189,15 @@ export function usePatients(): UsePatients {
     };
 
     setUploadedPatients(prev => [newPatient, ...prev]);
-
-    return { predictions: findings, patientId, usingMock };
+    return patientId;
   }, []);
 
   return {
     patients: allPatients,
     apiConnected,
     loading,
-    addPatientFromUpload,
+    predictImage,
+    savePatient,
     deletePatient,
     refresh: fetchFromApi,
   };

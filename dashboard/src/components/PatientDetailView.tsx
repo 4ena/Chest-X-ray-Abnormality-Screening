@@ -338,17 +338,20 @@ function PatientInfoPanel({ patient, highestTier, tierColor }: { patient: Patien
 
   return (
     <div className="p-5">
-      {/* Patient header */}
+      {/* Patient header with avatar */}
       <div className="text-center mb-5 pb-5 border-b border-gray-100">
-        <div className="w-16 h-16 rounded-full bg-gray-100 text-gray-600 text-lg font-bold flex items-center justify-center mx-auto mb-3">
-          {initials}
+        <div className="relative inline-block mb-3">
+          <div className="w-20 h-20 rounded-full bg-gray-100 text-gray-600 text-xl font-bold flex items-center justify-center mx-auto"
+            style={{ boxShadow: `0 0 0 3px white, 0 0 0 5px ${tierColor}` }}>
+            {initials}
+          </div>
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[8px] font-bold text-white"
+            style={{ backgroundColor: tierColor }}>
+            {TIER_LABELS[highestTier]}
+          </span>
         </div>
         <h2 className="text-lg font-semibold text-gray-900">{patient.name}</h2>
-        <p className="text-xs text-gray-400 mt-0.5 font-mono">P#{String(patient.id).padStart(5, "0")}</p>
-        <span className="inline-flex items-center gap-1 mt-2 px-2.5 py-1 rounded-full text-[10px] font-bold"
-          style={{ color: tierColor, backgroundColor: `${tierColor}12` }}>
-          {TIER_LABELS[highestTier]}
-        </span>
+        <p className="text-xs text-gray-400 mt-0.5 font-mono">{patient.apiId || `P#${String(patient.id).padStart(5, "0")}`}</p>
       </div>
 
       {/* Collapsible sections */}

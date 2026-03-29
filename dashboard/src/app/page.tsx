@@ -15,7 +15,7 @@ export default function Home() {
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [globalSearch, setGlobalSearch] = useState("");
 
-  const { patients, apiConnected, addPatientFromUpload, deletePatient } = usePatients();
+  const { patients, apiConnected, predictImage, savePatient, deletePatient } = usePatients();
 
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
 
@@ -72,7 +72,8 @@ export default function Home() {
           <div className="h-full overflow-y-auto">
             <UploadView
               onViewTriage={() => setActiveView("triage")}
-              onUploadAndPredict={addPatientFromUpload}
+              onPredict={predictImage}
+              onSave={savePatient}
               existingPatients={patients}
             />
           </div>
