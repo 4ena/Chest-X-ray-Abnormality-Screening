@@ -191,11 +191,21 @@ for (const name of ACTIVE_CONDITIONS) {
   EXPLANATIONS[name] = ALL_EXPLANATIONS[name];
 }
 
-// Seeded random
+// Seeded random — deterministic across server/client for hydration stability
 let seed = 42;
 function random() {
   seed = (seed * 16807) % 2147483647;
   return (seed - 1) / 2147483646;
+}
+
+// Fisher-Yates shuffle — deterministic unlike Array.sort(() => random() - 0.5)
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function severityFromConfidence(c: number): Finding["severity"] {
@@ -261,7 +271,7 @@ function generatePatients(): Patient[] {
 
   for (let i = 1; i <= 20; i++) {
     const numFindings = Math.floor(random() * 4) + 1;
-    const shuffled = [...CONDITIONS].sort(() => random() - 0.5);
+    const shuffled = shuffle(CONDITIONS);
     const selected = shuffled.slice(0, Math.min(numFindings, CONDITIONS.length));
 
     const findings: Finding[] = selected.map(name => {
