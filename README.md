@@ -66,29 +66,85 @@ The dashboard (`/dashboard`) provides four views:
 
 ## Getting Started
 
-### Dashboard (Frontend)
+### Option 1: Docker (recommended)
 
 ```bash
-cd dashboard
-npm install
-npm run dev
+docker-compose up --build
 ```
 
-Opens at [http://localhost:3000](http://localhost:3000). Currently runs with mock patient data.
+- Dashboard: http://localhost:3000
+- API: http://localhost:8000
+- API docs: http://localhost:8000/docs
 
-### Model Training
+### Option 2: Run individually
 
-*(Coming soon — pending team coordination)*
+**Dashboard:**
+```bash
+cd dashboard && npm install && npm run dev
+```
+
+**API:**
+```bash
+pip install -r api/requirements.txt
+uvicorn api.main:app --reload --port 8000
+```
+
+**Model training:**
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+### Connecting the trained model
+
+Drop the trained `.pth` file into `models/chestguard.pth` — the API auto-detects it and switches from mock to real inference. No code changes needed.
+
+## API Contract
+
+```
+POST /predict
+  Input:  multipart/form-data with "file" field (PNG/JPG)
+  Output: {
+    "findings": [
+      {"pathology": "Edema", "confidence": 0.91, "tier": 2, "tier_label": "urgent", "detected": true},
+      {"pathology": "Cardiomegaly", "confidence": 0.42, "tier": 3, "tier_label": "semi-urgent", "detected": true},
+      ...
+    ],
+    "highest_tier": 2,
+    "severity_score": 0.68,
+    "model_version": "0.1.0",
+    "using_mock": false
+  }
+
+GET /health       → {"status": "ok", "model_loaded": true, "using_mock": false}
+GET /conditions   → list of supported conditions with tier info
+```
 
 ## Project Structure
 
 ```
+├── api/                        # FastAPI backend
+│   ├── main.py                 # API endpoints (/predict, /health, /conditions)
+│   ├── inference.py            # Model loading + prediction (mock or real)
+│   ├── requirements.txt        # Python deps for API
+│   └── Dockerfile
 ├── dashboard/                  # Next.js frontend
 │   ├── src/
 │   │   ├── app/                # Next.js app router pages
 │   │   ├── components/         # UI components
-│   │   └── data/               # Mock data & types
-│   └── public/                 # Static assets
+│   │   ├── data/               # Mock data & types
+│   │   └── lib/                # API client utility
+│   └── Dockerfile
+├── src/                        # ML training code (teammate-owned)
+│   ├── model.py                # MobileNetV3-Small architecture
+│   ├── train.py                # Training loop
+│   ├── evaluate.py             # Evaluation + metrics
+│   └── dataset.py              # Data loading (in progress)
+├── config.py                   # Training config (image size, classes, etc.)
+├── main.py                     # Training entrypoint
+├── models/                     # Trained .pth files (gitignored)
+├── docker-compose.yml          # Run full stack with one command
+├── DASHBOARD_DESIGN.md         # Living UI decision tree
 ├── Model_Hospital_Ranking.md   # Tier-based severity ranking (with clinical sources)
 ├── PROPOSAL.md                 # Team proposal & pitch narrative
 └── README.md                   # This file
@@ -98,9 +154,9 @@ Opens at [http://localhost:3000](http://localhost:3000). Currently runs with moc
 
 | Role | Focus |
 |------|-------|
-| Mustapha | Architecture, data pipeline, pitch, integration |
+| Mustapha | Architecture, API, data pipeline, pitch, integration |
 | EMS Teammate | Clinical validation, tier ranking, label review, pitch credibility |
-| ML Teammate | Model training (DenseNet-121), Grad-CAM, evaluation |
+| ML Teammate | Model training (MobileNetV3-Small), evaluation |
 | Frontend Teammate | Dashboard UI/UX |
 
 ## Why This Matters
