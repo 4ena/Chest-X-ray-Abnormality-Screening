@@ -50,7 +50,7 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
   const hasResults = results !== null;
 
   return (
-    <div className="px-8 py-8 h-[calc(100vh-64px)] overflow-y-auto">
+    <div className="max-w-screen-2xl mx-auto px-8 py-8 h-[calc(100vh-64px)] overflow-y-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Upload X-ray</h1>
         <p className="text-sm text-gray-400 mt-1">Analyze a new chest radiograph</p>
@@ -121,18 +121,18 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
 
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <div>
-                <label className="text-xs text-gray-400 block mb-1">Full Name</label>
-                <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Enter patient name"
+                <label className="text-xs text-gray-400 block mb-1">Full Name <span className="text-red-400">*</span></label>
+                <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Enter patient name" required
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1">Age</label>
-                  <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)} placeholder="Age"
+                  <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
+                  <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)} placeholder="Age" required
                     className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1">Sex</label>
+                  <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
                   <select value={patientSex} onChange={e => setPatientSex(e.target.value)}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
                     <option>Male</option>
@@ -263,18 +263,48 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
               <p className="text-[11px] text-gray-400 mt-4 pt-3 border-t border-gray-50">Demo results — connect the ML backend for real inference.</p>
             </div>
 
-            {/* Patient info (filled from form or existing patient) */}
+            {/* Patient details — editable before save */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <User size={14} className="text-gray-400" />
                 Patient Details
               </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{patientName || "Not specified"}</span></div>
-                <div className="flex justify-between"><span className="text-gray-400">Age</span><span className="font-medium text-gray-900">{patientAge || "—"}</span></div>
-                <div className="flex justify-between"><span className="text-gray-400">Sex</span><span className="font-medium text-gray-900">{patientSex}</span></div>
-                {reasonForExam && <div className="flex justify-between"><span className="text-gray-400">Reason</span><span className="font-medium text-gray-900 text-right max-w-48">{reasonForExam}</span></div>}
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Name <span className="text-red-400">*</span></label>
+                  <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Patient name"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
+                    <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
+                    <select value={patientSex} onChange={e => setPatientSex(e.target.value)}
+                      className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
+                      <option>Male</option>
+                      <option>Female</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 block mb-1">Reason for Exam</label>
+                  <input type="text" value={reasonForExam} onChange={e => setReasonForExam(e.target.value)} placeholder="Clinical indication"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                </div>
               </div>
+
+              {/* Save button */}
+              <button
+                onClick={() => alert(`Saved: ${patientName}, ${patientAge}y ${patientSex}`)}
+                disabled={!patientName.trim() || !patientAge.trim()}
+                className="w-full mt-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Save Patient Record
+              </button>
             </div>
 
             <button onClick={() => { setResults(null); setPreviewUrl(null); setInserted(false); setFileName(""); }}
