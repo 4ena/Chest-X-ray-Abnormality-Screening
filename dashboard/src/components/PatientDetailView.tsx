@@ -33,7 +33,7 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
             <h3 className="text-sm font-semibold text-gray-900">Patient Lists ({patients.length})</h3>
           </div>
         </div>
-        <div className="divide-y divide-gray-50">
+        <div className="px-3 py-2 space-y-1.5">
           {patients.map(p => {
             const isActive = p.id === patient.id;
             const initials = p.name.split(" ").map(n => n[0]).join("").toUpperCase();
@@ -44,12 +44,16 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
               <button
                 key={p.id}
                 onClick={() => onSelectPatient(p.id)}
-                className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left ${
-                  isActive ? "bg-gray-50 border-l-2 border-gray-900" : "hover:bg-gray-50/60 border-l-2 border-transparent"
+                className={`w-full px-3 py-2.5 flex items-center gap-3 rounded-xl transition-all text-left ${
+                  isActive
+                    ? "bg-white shadow-sm ring-1 ring-gray-200"
+                    : "hover:bg-white hover:shadow-sm"
                 }`}
               >
                 <div className="relative">
-                  <div className="w-9 h-9 rounded-full bg-gray-100 text-gray-600 text-[11px] font-semibold flex items-center justify-center">
+                  <div className={`w-9 h-9 rounded-full text-[11px] font-semibold flex items-center justify-center ${
+                    isActive ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"
+                  }`}>
                     {initials}
                   </div>
                   <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${dotColor}`} />
@@ -58,7 +62,7 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
                   <p className={`text-sm truncate ${isActive ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>{p.name}</p>
                   <p className="text-[11px] text-gray-400 truncate">{p.topFinding} · {Math.round(p.findings[0]?.confidence * 100)}%</p>
                 </div>
-                <ChevronRight size={14} className="text-gray-300" />
+                <ChevronRight size={14} className={isActive ? "text-gray-500" : "text-gray-300"} />
               </button>
             );
           })}
