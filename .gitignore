@@ -211,6 +211,8 @@ marimo/_lsp/
 __marimo__/
 
 /data/
+#Excepting synth data from ignore to allow path concatenation in src's dataset __getitem__
+!data/synthetic/
 models/
 !dashboard/src/data/
 outputs/
