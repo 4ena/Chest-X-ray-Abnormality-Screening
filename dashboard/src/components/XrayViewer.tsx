@@ -306,7 +306,7 @@ function SummaryBar({ patient, highestTier }: { patient: Patient; highestTier: 2
   const topFinding = patient.findings[0];
   const color = TIER_COLORS[highestTier];
   const label = TIER_LABELS[highestTier];
-  const count = patient.findings.filter(f => f.confidence >= 0.3).length;
+  const count = patient.findings.filter(f => f.confidence >= 0.5).length;
 
   return (
     <div className="flex items-center gap-3 px-5 py-2.5 bg-white/90 backdrop-blur-sm border-b border-border/50">

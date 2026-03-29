@@ -159,7 +159,7 @@ function XrayPanel({ patient, imageLoaded, setImageLoaded, selectedFinding, onSe
             const f = findingMap.get(name);
             const conf = f ? Math.round(f.confidence * 100) : 0;
             const color = f ? TIER_COLORS[f.tier] : "#e5e7eb";
-            const detected = conf >= 30;
+            const detected = conf >= 50;
             const isSelected = selectedFinding?.pathology === name;
 
             return (
@@ -213,7 +213,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
 
   return (
     <div className="space-y-4">
-      {patient.findings.filter(f => f.confidence >= 0.25).map(f => {
+      {patient.findings.filter(f => f.confidence >= 0.5).map(f => {
         const color = TIER_COLORS[f.tier];
         const isSelected = selectedFinding?.pathology === f.pathology;
         const status = statuses[f.pathology] || "pending";

@@ -89,10 +89,10 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
             confidence: r.confidence,
             tier: r.tier,
             tier_label: TIER_LABELS[r.tier] || "ROUTINE",
-            detected: r.confidence >= 0.3,
+            detected: r.confidence >= 0.5,
           })),
           severity_score: results.reduce((sum, r) => sum + r.confidence, 0) / results.length,
-          highest_tier: Math.min(...results.filter(r => r.confidence >= 0.3).map(r => r.tier)),
+          highest_tier: Math.min(...results.filter(r => r.confidence >= 0.5).map(r => r.tier)),
         });
         setSavedId(record.id);
       } else {
@@ -104,8 +104,8 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
     }
   }
 
-  const highestTier = results ? Math.min(...results.filter(r => r.confidence >= 0.3).map(r => r.tier)) as 2 | 3 | 4 : 4;
-  const detectedCount = results ? results.filter(r => r.confidence >= 0.3).length : 0;
+  const highestTier = results ? Math.min(...results.filter(r => r.confidence >= 0.5).map(r => r.tier)) as 2 | 3 | 4 : 4;
+  const detectedCount = results ? results.filter(r => r.confidence >= 0.5).length : 0;
   const hasResults = results !== null;
 
   return (
@@ -301,7 +301,7 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
                 {results.map((r, i) => {
                   const pct = Math.round(r.confidence * 100);
                   const color = TIER_COLORS[r.tier];
-                  const detected = pct >= 30;
+                  const detected = pct >= 50;
                   return (
                     <div key={r.pathology} className={`flex items-center gap-3 ${!detected ? "opacity-40" : ""}`}>
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: detected ? color : "#e5e7eb" }} />

@@ -83,9 +83,9 @@ export default function CompareView() {
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${confA}%`, backgroundColor: confA >= 30 ? color : "#e5e7eb" }} />
+                        <div className="h-full rounded-full" style={{ width: `${confA}%`, backgroundColor: confA >= 50 ? color : "#e5e7eb" }} />
                       </div>
-                      <span className={`text-sm font-semibold w-10 ${confA >= 30 ? "text-gray-900" : "text-gray-300"}`}>{confA}%</span>
+                      <span className={`text-sm font-semibold w-10 ${confA >= 50 ? "text-gray-900" : "text-gray-300"}`}>{confA}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-3.5 text-center">
@@ -102,9 +102,9 @@ export default function CompareView() {
                   </td>
                   <td className="px-6 py-3.5">
                     <div className="flex items-center justify-end gap-2">
-                      <span className={`text-sm font-semibold w-10 text-right ${confB >= 30 ? "text-gray-900" : "text-gray-300"}`}>{confB}%</span>
+                      <span className={`text-sm font-semibold w-10 text-right ${confB >= 50 ? "text-gray-900" : "text-gray-300"}`}>{confB}%</span>
                       <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${confB}%`, backgroundColor: confB >= 30 ? color : "#e5e7eb" }} />
+                        <div className="h-full rounded-full" style={{ width: `${confB}%`, backgroundColor: confB >= 50 ? color : "#e5e7eb" }} />
                       </div>
                     </div>
                   </td>
@@ -235,7 +235,7 @@ function PatientCard({ patient, label }: { patient: Patient; label: string }) {
           {patient.findings.map(f => {
             const conf = Math.round(f.confidence * 100);
             const fc = TIER_COLORS[f.tier];
-            const detected = conf >= 30;
+            const detected = conf >= 50;
             return (
               <div key={f.pathology} className={`flex items-center gap-3 ${!detected ? "opacity-40" : ""}`}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: detected ? fc : "#e5e7eb" }} />
