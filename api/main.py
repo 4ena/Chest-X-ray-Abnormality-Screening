@@ -143,7 +143,7 @@ async def predict(file: UploadFile = File(...)):
             "tier": cond["tier"],
             "tier_label": cond["tier_label"],
             "weight": cond["weight"],
-            "detected": conf >= 0.3,
+            "detected": conf >= 0.5,  # Threshold for detection
         })
 
     total_weighted = sum(f["confidence"] * f["weight"] for f in findings_data)
