@@ -15,7 +15,7 @@ export default function Home() {
   const [selectedFinding, setSelectedFinding] = useState<Finding | null>(null);
   const [globalSearch, setGlobalSearch] = useState("");
 
-  const { patients, apiConnected, addPatientFromUpload } = usePatients();
+  const { patients, apiConnected, addPatientFromUpload, deletePatient } = usePatients();
 
   const patient = patients.find((p) => p.id === selectedPatientId) || patients[0];
 
@@ -45,6 +45,7 @@ export default function Home() {
             <TriageView
               patients={patients}
               onSelectPatient={handleSelectPatient}
+              onDeletePatient={deletePatient}
               globalSearch={globalSearch}
             />
           </div>

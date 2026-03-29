@@ -9,6 +9,7 @@ import PriorityChart from "@/components/PriorityChart";
 interface TriageViewProps {
   patients: Patient[];
   onSelectPatient: (id: number) => void;
+  onDeletePatient?: (id: number) => void;
   globalSearch?: string;
 }
 
@@ -53,7 +54,7 @@ function exportCSV(patients: Patient[]) {
   URL.revokeObjectURL(url);
 }
 
-export default function TriageView({ patients, onSelectPatient, globalSearch = "" }: TriageViewProps) {
+export default function TriageView({ patients, onSelectPatient, onDeletePatient, globalSearch = "" }: TriageViewProps) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -323,6 +324,18 @@ export default function TriageView({ patients, onSelectPatient, globalSearch = "
                           >
                             {readPatients.has(patient.id) ? "Already Read" : "Mark as Read"}
                           </button>
+                          {onDeletePatient && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeletePatient(patient.id);
+                                setActionMenu(null);
+                              }}
+                              className="w-full text-left px-3 py-1.5 text-sm text-red-500 hover:bg-red-50"
+                            >
+                              Delete Patient
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
