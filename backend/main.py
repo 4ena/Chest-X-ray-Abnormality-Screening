@@ -13,17 +13,22 @@ Endpoints:
   GET  /conditions  — List supported conditions + tier info
 """
 
+
+
+
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from api.inference import predict_image, get_model_status
+from backend.inference import predict_image, get_model_status
 
 app = FastAPI(
     title="Pneumanosis API",
-    description="Chest X-ray triage co-pilot — multi-label abnormality detection",
+    description="Chest X-ray triage — multi-label abnormality detection",
     version="0.1.0",
 )
+
 
 # Allow dashboard (Next.js dev server) to call the API
 app.add_middleware(
@@ -73,6 +78,11 @@ CONDITIONS = [
     {"name": "Pleural Effusion",  "tier": 3, "tier_label": "semi-urgent",  "weight": 6},
 ]
 
+
+
+
+
+
 # ── Endpoints ──
 
 @app.get("/health", response_model=HealthResponse)
@@ -85,9 +95,26 @@ def health_check():
         using_mock=status["using_mock"],
     )
 
+
+
+
+
+
+
+
+
 @app.get("/conditions", response_model=list[ConditionInfo])
 def list_conditions():
     return [ConditionInfo(**c) for c in CONDITIONS]
+
+
+
+
+
+
+
+
+
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict(file: UploadFile = File(...)):

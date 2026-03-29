@@ -1,0 +1,24 @@
+{
+  "name": "Pneumanosis",
+
+  "dockerComposeFile": "docker-compose.yaml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+ 
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+
+      "extensions": [
+        "vscodevim.vim",
+        "astral-sh.ty"
+      ]
+    }
+  }
+
+
+
+}

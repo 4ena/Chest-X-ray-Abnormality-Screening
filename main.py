@@ -7,9 +7,13 @@ from src.model import get_model
 from src.train import train_one_epoch
 from src.evaluate import evaluate
 from src.dataset import get_dataloaders
+import kragglehub
 
 def main():
     train_loader, val_loader = get_dataloaders()
+
+    #download data
+    
 
     #test dataloader
     image, label = next(iter(train_loader))

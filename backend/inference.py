@@ -13,9 +13,8 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-
-# Import from teammate's model code
 import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "pneumanosis.pth")
@@ -23,12 +22,24 @@ MODEL_VERSION = "0.1.0-mock"
 IMAGE_SIZE = 224
 NUM_CLASSES = 5
 
+
+
+
+
+
+
+
 # Preprocessing pipeline — matches teammate's config (224x224, ImageNet normalization)
 preprocess = transforms.Compose([
     transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
+
+
+
+
+
 
 # ── Model singleton ──
 
@@ -56,14 +67,15 @@ def _load_model():
             _using_mock = False
             MODEL_VERSION = "0.1.0"
             print(f"[Pneumanosis] Model loaded from {MODEL_PATH}")
+
+
         except Exception as e:
-            print(f"[Pneumanosis] Failed to load model: {e}")
-            print("[Pneumanosis] Falling back to mock predictions")
             _model_loaded = False
             _using_mock = True
+
+
+
     else:
-        print(f"[Pneumanosis] No model found at {MODEL_PATH}")
-        print("[Pneumanosis] Using mock predictions — drop .pth into models/ to enable real inference")
         _using_mock = True
 
 
@@ -90,6 +102,10 @@ def predict_image(image_bytes: bytes) -> dict:
             "using_mock": bool,
         }
     """
+
+
+
+    
     if _using_mock:
         return _mock_predict()
 
