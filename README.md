@@ -170,9 +170,9 @@ Interactive API docs: http://localhost:8000/docs
 |--------|-------|
 | Architecture | MobileNetV3-Small |
 | Training Data | CheXpert (224K images) |
-| Epochs | 15 |
+| Epochs | 16 |
 | AUC | 0.87 |
-| Augmentation | RandomRotation, ColorJitter |
+| Augmentation | RandomRotation, ColorJitter | Synthetic |
 | Detection Threshold | 50% confidence |
 | Inference Time | ~100-125ms on CPU |
 
