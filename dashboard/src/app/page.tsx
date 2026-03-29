@@ -26,7 +26,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="h-screen bg-gray-50/40 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gray-100/50 flex flex-col overflow-hidden">
       <TopNav activeView={activeView} onViewChange={setActiveView} />
 
       <main className="flex-1 overflow-hidden">
