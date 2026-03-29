@@ -11,7 +11,7 @@
 //   Pneumonia, Pleural Thickening, Nodule, Mass, Hernia
 
 export type Tier = 2 | 3 | 4;
-export type TierLabel = "urgent" | "semi-urgent" | "moderate";
+export type TierLabel = "stat" | "priority" | "routine";
 
 export interface Finding {
   pathology: string;
@@ -25,11 +25,11 @@ export interface Finding {
 
 // Maps each active condition to its clinical tier (from Model_Hospital_Ranking.md)
 export const CONDITION_TIERS: Record<string, { tier: Tier; label: TierLabel }> = {
-  "Edema":             { tier: 2, label: "urgent" },
-  "Consolidation":     { tier: 2, label: "urgent" },
-  "Pleural Effusion":  { tier: 3, label: "semi-urgent" },
-  "Cardiomegaly":      { tier: 3, label: "semi-urgent" },
-  "Atelectasis":       { tier: 4, label: "moderate" },
+  "Edema":             { tier: 2, label: "stat" },
+  "Consolidation":     { tier: 2, label: "stat" },
+  "Pleural Effusion":  { tier: 3, label: "priority" },
+  "Cardiomegaly":      { tier: 3, label: "priority" },
+  "Atelectasis":       { tier: 4, label: "routine" },
 };
 
 export interface Patient {
