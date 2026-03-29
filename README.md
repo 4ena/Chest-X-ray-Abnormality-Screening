@@ -2,6 +2,8 @@
 
 An AI-powered chest X-ray abnormality screening system that helps health professionals prioritize critical cases. Built for [RevolutionUC](https://revolutionuc.com/) hackathon by a team of 4.
 
+### THIS PROJECT IS FOR EDUCATIONAL PURPOSES ONLY. THIS PROJECT IS NOT INTENDED TO DIAGNOSE, TREAT, CURE, MANAGE, OR PREVENT ANY DISEASE. CONSULT A TRUSTED MEDICAL PROFESSIONAL IF YOU HAVE QUESTIONS REGARDING YOUR HEALTH.
+
 ## What It Does
 
 Upload a chest X-ray and get:
