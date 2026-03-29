@@ -86,6 +86,15 @@ def get_dataloaders():
     train_df = train_df[needed_cols].copy()
     valid_df = valid_df[needed_cols].copy()
 
+
+    #Add synthetic data from csv to dataset
+    synthetic_csv = os.path.join("data", "synthetic_labels.csv")
+    if os.path.exists(synthetic_csv):
+        synth_df = pd.read_csv(synthetic_csv)
+        synth_df = synth_df[needed_cols].copy()
+        train_df = pd.concat([train_df, synth_df], ignore_index=True)
+        print(f"Added {len(synth_df)} synthetic samples → total training: {len(train_df)}")
+
     for col in TARGET_COLUMNS:
         train_df[col] = train_df[col].fillna(0).replace(-1, 0)
         valid_df[col] = valid_df[col].fillna(0).replace(-1, 0)
