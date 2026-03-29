@@ -107,6 +107,7 @@ export default function DiagnoseNotes({ findings, onSelectFinding, selectedFindi
               return (
                 <div
                   key={f.pathology}
+                  id={`finding-${f.pathology.replace(/\s+/g, "-")}`}
                   className="rounded-lg p-2.5 bg-panel-bg cursor-pointer transition-all hover:bg-accent-light/50"
                   onClick={() => onSelectFinding(f)}
                 >
