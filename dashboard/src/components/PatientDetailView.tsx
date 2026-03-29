@@ -193,17 +193,31 @@ function XrayPanel({ patient, imageLoaded, setImageLoaded, selectedFinding, onSe
   );
 }
 
-/* ── Findings Panel ── */
+/* ── Findings Panel (hooks lifted out of map loop) ── */
 function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
   patient: Patient; selectedFinding: Finding | null; onSelectFinding: (f: Finding) => void;
 }) {
+  const [statuses, setStatuses] = useState<Record<string, "pending" | "confirmed" | "dismissed">>({});
+  const [flags, setFlags] = useState<Record<string, boolean>>({});
+
+  function toggleStatus(pathology: string, target: "confirmed" | "dismissed") {
+    setStatuses(prev => ({
+      ...prev,
+      [pathology]: prev[pathology] === target ? "pending" : target,
+    }));
+  }
+
+  function toggleFlag(pathology: string) {
+    setFlags(prev => ({ ...prev, [pathology]: !prev[pathology] }));
+  }
+
   return (
     <div className="space-y-4">
       {patient.findings.filter(f => f.confidence >= 0.25).map(f => {
         const color = TIER_COLORS[f.tier];
         const isSelected = selectedFinding?.pathology === f.pathology;
-        const [status, setStatus] = useState<"pending" | "confirmed" | "dismissed">("pending");
-        const [flagged, setFlagged] = useState(false);
+        const status = statuses[f.pathology] || "pending";
+        const flagged = flags[f.pathology] || false;
 
         return (
           <div
@@ -234,7 +248,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); setStatus(status === "confirmed" ? "pending" : "confirmed"); }}
+                onClick={(e) => { e.stopPropagation(); toggleStatus(f.pathology, "confirmed"); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   status === "confirmed" ? "bg-emerald-50 text-emerald-700" : "bg-gray-50 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
                 }`}
@@ -242,7 +256,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
                 <Check size={12} /> {status === "confirmed" ? "Confirmed" : "Confirm"}
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); setStatus(status === "dismissed" ? "pending" : "dismissed"); }}
+                onClick={(e) => { e.stopPropagation(); toggleStatus(f.pathology, "dismissed"); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   status === "dismissed" ? "bg-gray-200 text-gray-600" : "bg-gray-50 text-gray-500 hover:bg-gray-100"
                 }`}
@@ -250,7 +264,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
                 <X size={12} /> Dismiss
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); setFlagged(!flagged); }}
+                onClick={(e) => { e.stopPropagation(); toggleFlag(f.pathology); }}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   flagged ? "bg-amber-50 text-amber-700" : "bg-gray-50 text-gray-500 hover:bg-amber-50 hover:text-amber-600"
                 }`}
