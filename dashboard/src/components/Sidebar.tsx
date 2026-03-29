@@ -3,6 +3,7 @@
 import {
   LayoutGrid, List, GitCompareArrows, Upload, Settings, HelpCircle,
 } from "lucide-react";
+import { APP_NAME } from "@/lib/constants";
 
 const navItems = [
   { id: "dashboard", icon: LayoutGrid, label: "Dashboard" },
@@ -20,7 +21,11 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-14 bg-white border-r border-border flex flex-col items-center py-4 z-50">
       {/* Logo */}
-      <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center mb-8">
+      <button
+        onClick={() => onViewChange("triage")}
+        title={APP_NAME}
+        className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center mb-1 hover:scale-105 transition-transform"
+      >
         <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
           <path
             d="M14 6v16M8 10l6-4 6 4M8 18l6 4 6-4"
@@ -30,10 +35,11 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
             strokeLinejoin="round"
           />
         </svg>
-      </div>
+      </button>
+      <span className="text-[7px] font-bold text-accent tracking-tight mb-6">{APP_NAME}</span>
 
       {/* Nav Icons */}
-      <nav className="flex flex-col items-center gap-2 flex-1">
+      <nav className="flex flex-col items-center gap-1.5 flex-1">
         {navItems.map(({ id, icon: Icon, label }) => (
           <button
             key={id}
@@ -51,7 +57,7 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-1.5">
         <button title="Help" className="w-10 h-10 rounded-xl flex items-center justify-center text-muted hover:text-foreground hover:bg-panel-bg transition-colors">
           <HelpCircle size={18} strokeWidth={1.6} />
         </button>

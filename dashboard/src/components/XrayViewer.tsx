@@ -2,21 +2,19 @@
 
 import { useRef, useEffect, useState, useCallback } from "react";
 import {
-  ZoomIn, ZoomOut, RotateCw, Layers, Eye, EyeOff,
+  ZoomIn, ZoomOut, RotateCw, Eye, EyeOff,
   Lightbulb, Stethoscope, ImageIcon, AlertTriangle, ChevronDown,
   Check, X, Flag, ClipboardCopy,
 } from "lucide-react";
 import type { Patient, Finding } from "@/data/mock";
 import { PATHOLOGY_REGIONS, ACTIVE_CONDITIONS } from "@/data/mock";
+import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
 interface XrayViewerProps {
   patient: Patient;
   selectedFinding: Finding | null;
   onSelectFinding: (f: Finding) => void;
 }
-
-const TIER_COLORS: Record<number, string> = { 2: "#ef4444", 3: "#f59e0b", 4: "#3b82f6" };
-const TIER_LABELS: Record<number, string> = { 2: "URGENT", 3: "SEMI-URGENT", 4: "MODERATE" };
 
 export default function XrayViewer({ patient, selectedFinding, onSelectFinding }: XrayViewerProps) {
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -27,6 +25,8 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [viewerSize, setViewerSize] = useState({ w: 1000, h: 700 });
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
 
   // X-ray gets 70%+ of the width — cards are compact on the sides
   const cardWidth = 185;
@@ -189,7 +189,7 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
             className={`max-w-full max-h-full object-contain rounded-2xl transition-opacity duration-700 ${
               imageLoaded ? "opacity-100" : "opacity-0"
             }`}
-            style={{ filter: "brightness(1.1) contrast(1.15)", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
+            style={{ filter: "brightness(1.1) contrast(1.15)", boxShadow: "0 8px 40px rgba(0,0,0,0.12)", transform: `scale(${zoom}) rotate(${rotation}deg)`, transition: "transform 0.3s ease" }}
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
           />
@@ -277,10 +277,24 @@ export default function XrayViewer({ patient, selectedFinding, onSelectFinding }
               onChange={(e) => setHeatmapOpacity(parseFloat(e.target.value))} className="w-16 accent-accent" />
           )}
           <div className="w-px h-5 bg-border" />
-          <button className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Layers"><Layers size={14} /></button>
-          <button className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Rotate"><RotateCw size={14} /></button>
-          <button className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Zoom In"><ZoomIn size={14} /></button>
-          <button className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Zoom Out"><ZoomOut size={14} /></button>
+          <button
+            onClick={() => setRotation(r => (r + 90) % 360)}
+            className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Rotate 90°"
+          ><RotateCw size={14} /></button>
+          <button
+            onClick={() => setZoom(z => Math.min(z + 0.2, 3))}
+            className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Zoom In"
+          ><ZoomIn size={14} /></button>
+          <button
+            onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))}
+            className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-panel-bg transition-colors" title="Zoom Out"
+          ><ZoomOut size={14} /></button>
+          {(zoom !== 1 || rotation !== 0) && (
+            <button
+              onClick={() => { setZoom(1); setRotation(0); }}
+              className="px-2 py-1 rounded-xl text-[10px] font-medium text-accent hover:bg-accent/5 transition-colors" title="Reset view"
+            >Reset</button>
+          )}
         </div>
       </div>
     </div>

@@ -1,71 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { ArrowLeftRight, User, Calendar, Eye, Activity, Heart, Wind, ChevronDown, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { patients, type Patient } from "@/data/mock";
+import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
-function MiniXray({ patient, size = 260 }: { patient: Patient; size?: number }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-
-  const draw = useCallback(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    const w = size, h = size;
-
-    ctx.fillStyle = "#080c18";
-    ctx.fillRect(0, 0, w, h);
-
-    const grad = ctx.createRadialGradient(w / 2, h * 0.45, 15, w / 2, h * 0.45, w * 0.4);
-    grad.addColorStop(0, "rgba(150,160,180,0.25)");
-    grad.addColorStop(0.5, "rgba(90,100,120,0.18)");
-    grad.addColorStop(1, "rgba(10,15,30,0)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
-
-    // Lungs
-    ctx.fillStyle = "rgba(20,25,40,0.4)";
-    ctx.beginPath();
-    ctx.ellipse(w * 0.35, h * 0.4, w * 0.11, h * 0.16, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(w * 0.65, h * 0.4, w * 0.11, h * 0.16, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Heatmap
-    ctx.globalAlpha = 0.4;
-    const positions: Record<string, [number, number, number]> = {
-      "Cardiomegaly": [0.44, 0.5, 0.1],
-      "Pleural Effusion": [0.32, 0.68, 0.08],
-      "Atelectasis": [0.36, 0.52, 0.07],
-      "Edema": [0.5, 0.38, 0.12],
-      "Consolidation": [0.63, 0.35, 0.07],
-      "Lung Opacity": [0.6, 0.44, 0.09],
-      "Pneumothorax": [0.67, 0.25, 0.07],
-      "Enlarged Cardiomediastinum": [0.44, 0.46, 0.11],
-    };
-    for (const f of patient.findings) {
-      const pos = positions[f.pathology] || [0.5, 0.4, 0.08];
-      const cx = w * pos[0], cy = h * pos[1], r = w * pos[2];
-      const intensity = f.confidence;
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      g.addColorStop(0, `rgba(${Math.round(255 * intensity)},${Math.round(80 * (1 - intensity))},30,${intensity * 0.6})`);
-      g.addColorStop(1, `rgba(255,100,30,0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    ctx.fillStyle = "rgba(100,110,130,0.4)";
-    ctx.font = "10px monospace";
-    ctx.fillText(`ID: ${String(patient.id).padStart(5, "0")}`, 8, 16);
-  }, [patient, size]);
-
-  useEffect(() => { draw(); }, [draw]);
-
-  return <canvas ref={ref} width={size} height={size} className="w-full rounded-xl" />;
+function getHighestTier(p: Patient): number {
+  return Math.min(...p.findings.map(f => f.tier));
 }
 
 export default function CompareView() {
@@ -81,97 +22,231 @@ export default function CompareView() {
   ]);
 
   return (
-    <div className="p-6">
+    <div className="max-w-screen-2xl mx-auto px-8 py-8">
+      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold tracking-tight">Compare Scans</h1>
-        <p className="text-sm text-muted mt-1">Side-by-side analysis</p>
+        <h1 className="text-2xl font-bold text-gray-900">Compare Scans</h1>
+        <p className="text-sm text-gray-400 mt-1">Side-by-side analysis of two patients</p>
       </div>
 
-      <div className="flex gap-2 mb-5">
-        <select
-          value={selectedA}
-          onChange={e => setSelectedA(+e.target.value)}
-          className="px-3 py-1.5 rounded-lg border border-border text-sm bg-white"
-        >
-          {patients.map(p => (
-            <option key={p.id} value={p.id}>{p.name} (Severity: {Math.round(p.severityScore * 100)})</option>
-          ))}
-        </select>
-        <span className="text-muted self-center text-sm">vs</span>
-        <select
-          value={selectedB}
-          onChange={e => setSelectedB(+e.target.value)}
-          className="px-3 py-1.5 rounded-lg border border-border text-sm bg-white"
-        >
-          {patients.map(p => (
-            <option key={p.id} value={p.id}>{p.name} (Severity: {Math.round(p.severityScore * 100)})</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid grid-cols-[1fr_200px_1fr] gap-4">
-        {/* Patient A */}
-        <div className="space-y-4">
-          <div className="bg-card-dark rounded-2xl p-4">
-            <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">{patientA.name}</h4>
-            <MiniXray patient={patientA} />
-          </div>
-          <div className="bg-white rounded-2xl border border-border p-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-[10px] uppercase text-muted">Age</span><p className="font-medium">{patientA.age}y</p></div>
-              <div><span className="text-[10px] uppercase text-muted">Sex</span><p className="font-medium">{patientA.sex}</p></div>
-              <div><span className="text-[10px] uppercase text-muted">Severity</span><p className={`font-bold capitalize ${patientA.severityLevel === "critical" ? "text-critical" : patientA.severityLevel === "moderate" ? "text-moderate" : "text-normal"}`}>{Math.round(patientA.severityScore * 100)}</p></div>
-              <div><span className="text-[10px] uppercase text-muted">View</span><p className="font-medium">{patientA.view}</p></div>
-            </div>
-          </div>
+      {/* Patient selectors */}
+      <div className="flex items-center gap-4 mb-8">
+        <PatientSelector value={selectedA} onChange={setSelectedA} label="Patient A" />
+        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <ArrowLeftRight size={16} className="text-gray-400" />
         </div>
+        <PatientSelector value={selectedB} onChange={setSelectedB} label="Patient B" />
+      </div>
 
-        {/* Diff Column */}
-        <div className="bg-white rounded-2xl border border-border p-4">
-          <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">Differences</h4>
-          <div className="space-y-3">
+      {/* Comparison grid */}
+      <div className="grid grid-cols-[1fr_1fr] gap-6 mb-8">
+        <PatientCard patient={patientA} label="A" />
+        <PatientCard patient={patientB} label="B" />
+      </div>
+
+      {/* Findings comparison table */}
+      <div className="bg-white rounded-2xl border border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-50">
+          <h2 className="text-base font-semibold text-gray-900">Findings Comparison</h2>
+        </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-50">
+              <th className="text-left text-[11px] uppercase tracking-wider text-gray-400 font-medium px-6 py-3">Condition</th>
+              <th className="text-left text-[11px] uppercase tracking-wider text-gray-400 font-medium px-6 py-3">Patient A</th>
+              <th className="text-center text-[11px] uppercase tracking-wider text-gray-400 font-medium px-6 py-3 w-24">Delta</th>
+              <th className="text-right text-[11px] uppercase tracking-wider text-gray-400 font-medium px-6 py-3">Patient B</th>
+            </tr>
+          </thead>
+          <tbody>
             {Array.from(allPathologies).map(pathology => {
-              const confA = patientA.findings.find(f => f.pathology === pathology)?.confidence || 0;
-              const confB = patientB.findings.find(f => f.pathology === pathology)?.confidence || 0;
-              const delta = Math.round((confB - confA) * 100);
-              const pctA = Math.round(confA * 100);
-              const pctB = Math.round(confB * 100);
+              const fA = patientA.findings.find(f => f.pathology === pathology);
+              const fB = patientB.findings.find(f => f.pathology === pathology);
+              const confA = Math.round((fA?.confidence || 0) * 100);
+              const confB = Math.round((fB?.confidence || 0) * 100);
+              const delta = confB - confA;
+              const tier = fA?.tier || fB?.tier || 4;
+              const color = TIER_COLORS[tier];
 
               return (
-                <div key={pathology} className="pb-3 border-b border-border/50 last:border-0">
-                  <p className="text-[11px] font-semibold mb-1.5 truncate">{pathology}</p>
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    <span className="font-semibold">{pctA}%</span>
-                    <span className="text-muted">vs</span>
-                    <span className="font-semibold">{pctB}%</span>
-                    {delta !== 0 && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                        delta > 0 ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600"
+                <tr key={pathology} className="border-b border-gray-50/80 hover:bg-gray-50/30 transition-colors">
+                  <td className="px-6 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                      <span className="text-sm font-medium text-gray-900">{pathology}</span>
+                      <span className="text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded"
+                        style={{ color, backgroundColor: `${color}12` }}>
+                        {TIER_LABELS[tier]}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${confA}%`, backgroundColor: confA >= 30 ? color : "#e5e7eb" }} />
+                      </div>
+                      <span className={`text-sm font-semibold w-10 ${confA >= 30 ? "text-gray-900" : "text-gray-300"}`}>{confA}%</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-3.5 text-center">
+                    {delta !== 0 ? (
+                      <span className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+                        delta > 0 ? "bg-red-50 text-red-500" : "bg-emerald-50 text-emerald-600"
                       }`}>
+                        {delta > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                         {delta > 0 ? "+" : ""}{delta}%
                       </span>
+                    ) : (
+                      <span className="text-xs text-gray-300 flex items-center justify-center"><Minus size={12} /></span>
                     )}
-                  </div>
-                </div>
+                  </td>
+                  <td className="px-6 py-3.5">
+                    <div className="flex items-center justify-end gap-2">
+                      <span className={`text-sm font-semibold w-10 text-right ${confB >= 30 ? "text-gray-900" : "text-gray-300"}`}>{confB}%</span>
+                      <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${confB}%`, backgroundColor: confB >= 30 ? color : "#e5e7eb" }} />
+                      </div>
+                    </div>
+                  </td>
+                </tr>
               );
             })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ── Patient Selector dropdown ── */
+function PatientSelector({ value, onChange, label }: { value: number; onChange: (id: number) => void; label: string }) {
+  return (
+    <div className="flex-1">
+      <label className="text-[11px] text-gray-400 uppercase tracking-wider font-medium mb-1.5 block">{label}</label>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={e => onChange(+e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 appearance-none cursor-pointer"
+        >
+          {patients.map(p => (
+            <option key={p.id} value={p.id}>
+              {p.name} — {TIER_LABELS[getHighestTier(p)]} — Score: {Math.round(p.severityScore * 100)}
+            </option>
+          ))}
+        </select>
+        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+      </div>
+    </div>
+  );
+}
+
+/* ── Patient summary card ── */
+function PatientCard({ patient, label }: { patient: Patient; label: string }) {
+  const tier = getHighestTier(patient);
+  const color = TIER_COLORS[tier];
+  const initials = patient.name.split(" ").map(n => n[0]).join("").toUpperCase();
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      {/* Header with tier color accent */}
+      <div className="h-1" style={{ backgroundColor: color }} />
+      <div className="p-5">
+        {/* Patient identity */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-11 h-11 rounded-full bg-gray-100 text-gray-600 text-sm font-semibold flex items-center justify-center">
+            {initials}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-gray-900">{patient.name}</h3>
+            <p className="text-xs text-gray-400">P#{String(patient.id).padStart(5, "0")}</p>
+          </div>
+          <span className="text-[9px] font-bold tracking-wide px-2 py-1 rounded"
+            style={{ color, backgroundColor: `${color}12` }}>
+            {TIER_LABELS[tier]}
+          </span>
+        </div>
+
+        {/* X-ray image */}
+        <div className="bg-gray-950 rounded-xl overflow-hidden mb-4 relative" style={{ height: 220 }}>
+          <img
+            src={patient.xrayImageUrl}
+            alt={`X-ray for ${patient.name}`}
+            className="w-full h-full object-contain"
+            style={{ filter: "brightness(1.1) contrast(1.1)" }}
+          />
+          <div className="absolute top-2 left-2 bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium px-2 py-0.5 rounded">
+            {patient.view} · {patient.apPa}
           </div>
         </div>
 
-        {/* Patient B */}
-        <div className="space-y-4">
-          <div className="bg-card-dark rounded-2xl p-4">
-            <h4 className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-3">{patientB.name}</h4>
-            <MiniXray patient={patientB} />
-          </div>
-          <div className="bg-white rounded-2xl border border-border p-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><span className="text-[10px] uppercase text-muted">Age</span><p className="font-medium">{patientB.age}y</p></div>
-              <div><span className="text-[10px] uppercase text-muted">Sex</span><p className="font-medium">{patientB.sex}</p></div>
-              <div><span className="text-[10px] uppercase text-muted">Severity</span><p className={`font-bold capitalize ${patientB.severityLevel === "critical" ? "text-critical" : patientB.severityLevel === "moderate" ? "text-moderate" : "text-normal"}`}>{Math.round(patientB.severityScore * 100)}</p></div>
-              <div><span className="text-[10px] uppercase text-muted">View</span><p className="font-medium">{patientB.view}</p></div>
+        {/* Info grid with icons */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+            <User size={14} className="text-gray-400" />
+            <div>
+              <p className="text-[10px] text-gray-400">Age / Sex</p>
+              <p className="text-sm font-medium text-gray-900">{patient.age}y {patient.sex}</p>
             </div>
           </div>
+          <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+            <Calendar size={14} className="text-gray-400" />
+            <div>
+              <p className="text-[10px] text-gray-400">Admitted</p>
+              <p className="text-sm font-medium text-gray-900">{patient.admissionDate}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+            <Eye size={14} className="text-gray-400" />
+            <div>
+              <p className="text-[10px] text-gray-400">View</p>
+              <p className="text-sm font-medium text-gray-900">{patient.view} ({patient.apPa})</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
+            <Activity size={14} className="text-gray-400" />
+            <div>
+              <p className="text-[10px] text-gray-400">Severity</p>
+              <p className="text-sm font-bold" style={{ color }}>{Math.round(patient.severityScore * 100)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Vitals row */}
+        <div className="flex items-center gap-4 mb-4 text-sm">
+          <div className="flex items-center gap-1.5">
+            <Heart size={12} className="text-gray-400" />
+            <span className="text-gray-400">Inflammation:</span>
+            <span className={`font-medium ${patient.inflammation === "High" ? "text-red-500" : patient.inflammation === "Medium" ? "text-amber-500" : "text-emerald-500"}`}>
+              {patient.inflammation}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Wind size={12} className="text-gray-400" />
+            <span className="text-gray-400">Ventilation:</span>
+            <span className={`font-medium ${patient.ventilation === "Compromised" ? "text-red-500" : patient.ventilation === "Impaired" ? "text-amber-500" : "text-emerald-500"}`}>
+              {patient.ventilation}
+            </span>
+          </div>
+        </div>
+
+        {/* Findings bars */}
+        <div className="space-y-2">
+          {patient.findings.map(f => {
+            const conf = Math.round(f.confidence * 100);
+            const fc = TIER_COLORS[f.tier];
+            const detected = conf >= 30;
+            return (
+              <div key={f.pathology} className={`flex items-center gap-3 ${!detected ? "opacity-40" : ""}`}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: detected ? fc : "#e5e7eb" }} />
+                <span className={`text-sm w-32 truncate ${detected ? "font-medium text-gray-900" : "text-gray-400"}`}>{f.pathology}</span>
+                <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${conf}%`, backgroundColor: detected ? fc : "#e5e7eb" }} />
+                </div>
+                <span className="text-sm font-semibold w-10 text-right" style={{ color: detected ? fc : "#d1d5db" }}>{conf}%</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

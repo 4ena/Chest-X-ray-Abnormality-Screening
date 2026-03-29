@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #1a1f36;
+  --background: #fafafa;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-dark: #1a1f36;
-  --border: #eef0f4;
-  --muted: #8b8fa3;
-  --accent: #4a6cf7;
-  --accent-light: #eef2ff;
-  --sidebar-bg: #fafbfd;
-  --panel-bg: #f7f8fc;
+  --card-dark: #111827;
+  --border: #f3f4f6;
+  --muted: #9ca3af;
+  --accent: #111827;
+  --accent-light: #f3f4f6;
+  --sidebar-bg: #ffffff;
+  --panel-bg: #f9fafb;
   --critical: #ef4444;
   --critical-bg: #fef2f2;
   --moderate: #f59e0b;
@@ -50,8 +50,11 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 6px; }
+/* Remove Recharts focus outline on click */
+.recharts-surface, .recharts-wrapper { outline: none !important; }
+
+/* Custom scrollbar — minimal */
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #d1d5db; }

@@ -1,17 +1,13 @@
 /**
  * Pneumanosis API client
  *
- * Connects the dashboard to the FastAPI backend for real inference.
- * Falls back gracefully if the API is unavailable (mock mode continues to work).
- *
- * Usage in components:
- *   import { predictXray, checkHealth } from "@/lib/api";
- *   const result = await predictXray(file);
+ * Connects the dashboard to the FastAPI backend.
+ * Falls back gracefully if the API is unavailable (mock mode continues).
  */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-// ── Types matching the API response models ──
+// ── Types matching API response models ──
 
 export interface ConditionResult {
   pathology: string;
@@ -44,7 +40,26 @@ export interface ConditionInfo {
   weight: number;
 }
 
-// ── API calls ──
+export interface PatientRecord {
+  id: string;
+  name: string;
+  age: number;
+  sex: string;
+  reason_for_exam: string;
+  findings: ConditionResult[];
+  severity_score: number;
+  highest_tier: number;
+  created_at: string;
+}
+
+export interface FindingActionResponse {
+  patient_id: string;
+  pathology: string;
+  status: string;
+  flagged: boolean;
+}
+
+// ── Health & conditions ──
 
 export async function checkHealth(): Promise<HealthResponse | null> {
   try {
@@ -56,21 +71,9 @@ export async function checkHealth(): Promise<HealthResponse | null> {
   }
 }
 
-export async function predictXray(file: File): Promise<PredictionResponse> {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const res = await fetch(`${API_URL}/predict`, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ detail: "Unknown error" }));
-    throw new Error(error.detail || `API error: ${res.status}`);
-  }
-
-  return await res.json();
+export async function isApiAvailable(): Promise<boolean> {
+  const health = await checkHealth();
+  return health !== null && health.status === "ok";
 }
 
 export async function getConditions(): Promise<ConditionInfo[]> {
@@ -79,11 +82,70 @@ export async function getConditions(): Promise<ConditionInfo[]> {
   return await res.json();
 }
 
-/**
- * Check if the API is reachable. Use this to decide whether to
- * show "Live" or "Mock" mode in the UI.
- */
-export async function isApiAvailable(): Promise<boolean> {
-  const health = await checkHealth();
-  return health !== null && health.status === "ok";
+// ── Prediction ──
+
+export async function predictXray(file: File): Promise<PredictionResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_URL}/predict`, { method: "POST", body: formData });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Unknown error" }));
+    throw new Error(error.detail || `API error: ${res.status}`);
+  }
+  return await res.json();
+}
+
+// ── Patient CRUD ──
+
+export async function listPatients(): Promise<PatientRecord[]> {
+  const res = await fetch(`${API_URL}/patients`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return await res.json();
+}
+
+export async function createPatient(data: {
+  name: string;
+  age: number;
+  sex: string;
+  reason_for_exam?: string;
+  findings?: ConditionResult[];
+  severity_score?: number;
+  highest_tier?: number;
+}): Promise<PatientRecord> {
+  const res = await fetch(`${API_URL}/patients`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Unknown error" }));
+    throw new Error(error.detail || `API error: ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function updatePatient(id: string, data: {
+  name: string; age: number; sex: string; reason_for_exam?: string;
+}): Promise<PatientRecord> {
+  const res = await fetch(`${API_URL}/patients/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return await res.json();
+}
+
+// ── Finding actions ──
+
+export async function updateFindingAction(
+  patientId: string, pathology: string, action: "confirm" | "dismiss" | "flag" | "unflag"
+): Promise<FindingActionResponse> {
+  const res = await fetch(`${API_URL}/findings/${patientId}/${encodeURIComponent(pathology)}/action`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action }),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return await res.json();
 }

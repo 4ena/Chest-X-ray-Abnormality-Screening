@@ -11,7 +11,7 @@
 //   Pneumonia, Pleural Thickening, Nodule, Mass, Hernia
 
 export type Tier = 2 | 3 | 4;
-export type TierLabel = "urgent" | "semi-urgent" | "moderate";
+export type TierLabel = "stat" | "priority" | "routine";
 
 export interface Finding {
   pathology: string;
@@ -25,11 +25,11 @@ export interface Finding {
 
 // Maps each active condition to its clinical tier (from Model_Hospital_Ranking.md)
 export const CONDITION_TIERS: Record<string, { tier: Tier; label: TierLabel }> = {
-  "Edema":             { tier: 2, label: "urgent" },
-  "Consolidation":     { tier: 2, label: "urgent" },
-  "Pleural Effusion":  { tier: 3, label: "semi-urgent" },
-  "Cardiomegaly":      { tier: 3, label: "semi-urgent" },
-  "Atelectasis":       { tier: 4, label: "moderate" },
+  "Edema":             { tier: 2, label: "stat" },
+  "Consolidation":     { tier: 2, label: "stat" },
+  "Pleural Effusion":  { tier: 3, label: "priority" },
+  "Cardiomegaly":      { tier: 3, label: "priority" },
+  "Atelectasis":       { tier: 4, label: "routine" },
 };
 
 export interface Patient {
@@ -82,28 +82,19 @@ export const ACTIVE_CONDITIONS = [
 //   "Hernia",
 // ];
 
-// Sample chest X-ray images from Wikimedia Commons (public domain)
+// Sample chest X-ray images — local copies for instant demo loading
+// Originals from Wikimedia Commons (public domain, CC0)
 const SAMPLE_XRAY_URLS = [
-  "https://upload.wikimedia.org/wikipedia/commons/a/a1/Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/7/7a/Cardiomegally.PNG",
-  "https://upload.wikimedia.org/wikipedia/commons/e/e7/Pleural_effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/b/bb/Atelectasia.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/2/2f/Pneumothorax_CXR.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/3/34/Bilateral_Pleural_Effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/d/d5/Cardiomegalia.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/6/6b/Medical_X-Ray_imaging_AFJ02_nevit.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/9/9f/Chest_X-ray_of_pneumothorax.png",
-  "https://upload.wikimedia.org/wikipedia/commons/5/57/Left-sided_Pleural_Effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/c/cb/02-01-Infiltrat_pa.png",
-  "https://upload.wikimedia.org/wikipedia/commons/f/ff/Effusion.png",
-  "https://upload.wikimedia.org/wikipedia/commons/2/25/09-01-Pneumothorax.png",
-  "https://upload.wikimedia.org/wikipedia/commons/8/8d/Atelectasia1.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/b/ba/05-Spontanpneumothorax.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/d/df/Unilateral_Pleural_Effusion.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/8/8c/Rad_1300124.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/2/2d/Oberlappenatelektase_links_pa.jpg",
-  "https://upload.wikimedia.org/wikipedia/commons/a/ac/PneumonisWedge09.JPG",
-  "https://upload.wikimedia.org/wikipedia/commons/3/30/Effusionhalf.PNG",
+  "/sample-xrays/xray_normal.jpg",
+  "/sample-xrays/xray_cardiomegaly_01.png",
+  "/sample-xrays/xray_effusion_01.jpg",
+  "/sample-xrays/xray_atelectasis_01.jpg",
+  "/sample-xrays/xray_effusion_bilateral.jpg",
+  "/sample-xrays/xray_cardiomegaly_02.jpg",
+  "/sample-xrays/xray_consolidation_01.jpg",
+  "/sample-xrays/xray_effusion_left.jpg",
+  "/sample-xrays/xray_consolidation_02.jpg",
+  "/sample-xrays/xray_effusion_unilateral.jpg",
 ];
 
 // Anatomical regions on the X-ray for heatmap marker placement
@@ -200,11 +191,21 @@ for (const name of ACTIVE_CONDITIONS) {
   EXPLANATIONS[name] = ALL_EXPLANATIONS[name];
 }
 
-// Seeded random
+// Seeded random — deterministic across server/client for hydration stability
 let seed = 42;
 function random() {
   seed = (seed * 16807) % 2147483647;
   return (seed - 1) / 2147483646;
+}
+
+// Fisher-Yates shuffle — deterministic unlike Array.sort(() => random() - 0.5)
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function severityFromConfidence(c: number): Finding["severity"] {
@@ -270,13 +271,13 @@ function generatePatients(): Patient[] {
 
   for (let i = 1; i <= 20; i++) {
     const numFindings = Math.floor(random() * 4) + 1;
-    const shuffled = [...CONDITIONS].sort(() => random() - 0.5);
+    const shuffled = shuffle(CONDITIONS);
     const selected = shuffled.slice(0, Math.min(numFindings, CONDITIONS.length));
 
     const findings: Finding[] = selected.map(name => {
       const confidence = Math.round((random() * 0.7 + 0.15) * 100) / 100;
       const info = EXPLANATIONS[name];
-      const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "moderate" as TierLabel };
+      const tierInfo = CONDITION_TIERS[name] || { tier: 4 as Tier, label: "routine" as TierLabel };
       return {
         pathology: name,
         confidence,
@@ -320,7 +321,17 @@ function generatePatients(): Patient[] {
     });
   }
 
-  return patients.sort((a, b) => b.severityScore - a.severityScore);
+  // Clinical sort: tier-first, then severity score, then wait time
+  // Based on ACR worklist guidelines and PMC chest X-ray prioritization study
+  // All STAT patients above all PRIORITY above all ROUTINE
+  return patients.sort((a, b) => {
+    const tierA = Math.min(...a.findings.map(f => f.tier));
+    const tierB = Math.min(...b.findings.map(f => f.tier));
+    if (tierA !== tierB) return tierA - tierB; // lower tier number = more urgent
+    if (b.severityScore !== a.severityScore) return b.severityScore - a.severityScore;
+    // longer wait = higher priority (earlier date = longer wait)
+    return new Date(a.admissionDate).getTime() - new Date(b.admissionDate).getTime();
+  });
 }
 
 export const patients = generatePatients();
