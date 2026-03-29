@@ -168,7 +168,7 @@ export function usePatients(): UsePatients {
           detected: f.confidence >= 0.5,
         })),
         severity_score: findings.reduce((sum, f) => sum + f.confidence, 0) / findings.length,
-        highest_tier: Math.min(...findings.filter(f => f.confidence >= 0.5).map(f => f.tier)),
+        highest_tier: (() => { const tiers = findings.filter(f => f.confidence >= 0.5).map(f => f.tier); return tiers.length > 0 ? Math.min(...tiers) : 5; })(),
       });
       patientId = record.id;
     } catch {
