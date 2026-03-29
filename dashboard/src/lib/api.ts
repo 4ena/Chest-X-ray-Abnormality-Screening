@@ -1,5 +1,5 @@
 /**
- * ChestGuard API client
+ * Pneumanosis API client
  *
  * Connects the dashboard to the FastAPI backend for real inference.
  * Falls back gracefully if the API is unavailable (mock mode continues to work).

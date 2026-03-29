@@ -1,4 +1,4 @@
-# ChestGuard — Chest X-ray Triage Co-Pilot
+# Pneumanosis — Chest X-ray Triage Co-Pilot
 
 An AI-powered chest X-ray abnormality screening system that helps health professionals prioritize critical cases. Built for [RevolutionUC](https://revolutionuc.com/) hackathon by a team of 4.
 
@@ -97,7 +97,7 @@ python main.py
 
 ### Connecting the trained model
 
-Drop the trained `.pth` file into `models/chestguard.pth` — the API auto-detects it and switches from mock to real inference. No code changes needed.
+Drop the trained `.pth` file into `models/pneumanosis.pth` — the API auto-detects it and switches from mock to real inference. No code changes needed.
 
 ## API Contract
 

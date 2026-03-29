@@ -1,5 +1,5 @@
 """
-ChestGuard API — FastAPI backend for chest X-ray inference.
+Pneumanosis API — FastAPI backend for chest X-ray inference.
 
 Serves the trained MobileNetV3-Small model for multi-label classification
 of 5 chest X-ray conditions.
@@ -20,7 +20,7 @@ from pydantic import BaseModel
 from api.inference import predict_image, get_model_status
 
 app = FastAPI(
-    title="ChestGuard API",
+    title="Pneumanosis API",
     description="Chest X-ray triage co-pilot — multi-label abnormality detection",
     version="0.1.0",
 )

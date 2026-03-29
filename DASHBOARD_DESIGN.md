@@ -6,7 +6,7 @@ Living document — tweak until it fits what we want.
 
 ## 1. Landing Page: Triage Queue
 
-**Decision:** Doctor opens ChestGuard → sees the worklist, not a single patient.
+**Decision:** Doctor opens Pneumanosis → sees the worklist, not a single patient.
 
 **Why:** Matches real radiology workflow (Aidoc, Annalise.ai, Philips). The first question is always "what needs my attention right now?"
 
