@@ -55,7 +55,7 @@ export default function DiagnoseNotes({ findings, onSelectFinding, selectedFindi
           const conf = f ? Math.round(f.confidence * 100) : 0;
           const color = f ? TIER_COLORS[f.tier] : "#e2e8f0";
           const isSelected = selectedFinding?.pathology === name;
-          const detected = conf >= 30;
+          const detected = conf >= 50;
 
           return (
             <div
@@ -98,7 +98,7 @@ export default function DiagnoseNotes({ findings, onSelectFinding, selectedFindi
         <div className="border-t border-border pt-3">
           <p className="text-[10px] text-muted font-medium uppercase tracking-wider mb-2">Detected Findings</p>
           <div className="space-y-1.5">
-            {findings.filter(f => f.confidence >= 0.25).map(f => {
+            {findings.filter(f => f.confidence >= 0.5).map(f => {
               const isExpanded = expanded === f.pathology;
               const color = TIER_COLORS[f.tier];
 

@@ -3,18 +3,19 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronDown, ChevronRight, Phone, Mail, Calendar, Eye, FileText, ClipboardList, Images, AlertTriangle, Check, X, Flag, ClipboardCopy } from "lucide-react";
 import type { Patient, Finding } from "@/data/mock";
-import { patients, PATHOLOGY_REGIONS, ACTIVE_CONDITIONS } from "@/data/mock";
+import { ACTIVE_CONDITIONS } from "@/data/mock";
 import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
 interface PatientDetailViewProps {
   patient: Patient;
+  allPatients: Patient[];
   selectedFinding: Finding | null;
   onSelectFinding: (f: Finding) => void;
   onBack: () => void;
   onSelectPatient: (id: number) => void;
 }
 
-export default function PatientDetailView({ patient, selectedFinding, onSelectFinding, onBack, onSelectPatient }: PatientDetailViewProps) {
+export default function PatientDetailView({ patient, allPatients, selectedFinding, onSelectFinding, onBack, onSelectPatient }: PatientDetailViewProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<"xray" | "findings" | "data">("xray");
 
@@ -31,11 +32,11 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
       <div className="w-[240px] border-x border-gray-100 overflow-y-auto">
         <div className="px-8 py-4 border-b border-gray-50">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900">Patient Lists ({patients.length})</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Patient Lists ({allPatients.length})</h3>
           </div>
         </div>
         <div className="px-3 py-2 space-y-1.5">
-          {patients.map(p => {
+          {allPatients.map(p => {
             const isActive = p.id === patient.id;
             const initials = p.name.split(" ").map(n => n[0]).join("").toUpperCase();
             const pTier = Math.min(...p.findings.map(f => f.tier));
@@ -159,7 +160,7 @@ function XrayPanel({ patient, imageLoaded, setImageLoaded, selectedFinding, onSe
             const f = findingMap.get(name);
             const conf = f ? Math.round(f.confidence * 100) : 0;
             const color = f ? TIER_COLORS[f.tier] : "#e5e7eb";
-            const detected = conf >= 30;
+            const detected = conf >= 50;
             const isSelected = selectedFinding?.pathology === name;
 
             return (
@@ -213,7 +214,7 @@ function FindingsPanel({ patient, selectedFinding, onSelectFinding }: {
 
   return (
     <div className="space-y-4">
-      {patient.findings.filter(f => f.confidence >= 0.25).map(f => {
+      {patient.findings.filter(f => f.confidence >= 0.5).map(f => {
         const color = TIER_COLORS[f.tier];
         const isSelected = selectedFinding?.pathology === f.pathology;
         const status = statuses[f.pathology] || "pending";

@@ -3,110 +3,81 @@
 import { useState, useRef } from "react";
 import { Upload, FileImage, Loader2, AlertTriangle, Activity, Check, ArrowRight, ImageIcon, User, ChevronDown, Save } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { patients } from "@/data/mock";
 import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
-import { predictXray, createPatient, isApiAvailable, type ConditionResult } from "@/lib/api";
-
-const MOCK_RESULTS = [
-  { pathology: "Edema", confidence: 0.82, tier: 2 },
-  { pathology: "Pleural Effusion", confidence: 0.64, tier: 3 },
-  { pathology: "Atelectasis", confidence: 0.41, tier: 4 },
-  { pathology: "Cardiomegaly", confidence: 0.23, tier: 3 },
-  { pathology: "Consolidation", confidence: 0.11, tier: 2 },
-];
+import type { Patient, Finding } from "@/data/mock";
 
 interface UploadViewProps {
   onViewTriage?: () => void;
+  onUploadAndPredict: (data: { file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string }) => Promise<{ predictions: Finding[]; patientId: string; usingMock: boolean }>;
+  existingPatients: Patient[];
 }
 
-export default function UploadView({ onViewTriage }: UploadViewProps) {
+export default function UploadView({ onViewTriage, onUploadAndPredict, existingPatients }: UploadViewProps) {
   const [dragging, setDragging] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [results, setResults] = useState<typeof MOCK_RESULTS | null>(null);
+  const [results, setResults] = useState<Finding[] | null>(null);
   const [fileName, setFileName] = useState("");
-  const [inserted, setInserted] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<string>("");
   const [patientName, setPatientName] = useState("");
   const [patientAge, setPatientAge] = useState("");
-  const [patientSex, setPatientSex] = useState("Male");
+  const [patientSex, setPatientSex] = useState<"Male" | "Female">("Male");
   const [reasonForExam, setReasonForExam] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [usingMock, setUsingMock] = useState(false);
+  const [analysisTime, setAnalysisTime] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [savedId, setSavedId] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-
   async function handleFile(file: File) {
+    if (!patientName.trim() || !patientAge.trim()) {
+      setError("Please fill in patient name and age before uploading.");
+      return;
+    }
+    setError(null);
     setFileName(file.name);
     setPreviewUrl(URL.createObjectURL(file));
     setUploadedFile(file);
     setAnalyzing(true);
     setResults(null);
-    setInserted(false);
     setSavedId(null);
-    setSaveError(null);
 
+    const startTime = performance.now();
     try {
-      // Try real API first
-      const apiUp = await isApiAvailable();
-      if (apiUp) {
-        const response = await predictXray(file);
-        setResults(response.findings.map(f => ({
-          pathology: f.pathology,
-          confidence: f.confidence,
-          tier: f.tier,
-        })));
-      } else {
-        // Fallback to mock results
-        await new Promise(r => setTimeout(r, 1500));
-        setResults(MOCK_RESULTS);
-      }
-    } catch {
-      // Fallback to mock on any error
-      await new Promise(r => setTimeout(r, 1000));
-      setResults(MOCK_RESULTS);
+      const { predictions, patientId, usingMock: mock } = await onUploadAndPredict({
+        file,
+        name: patientName,
+        age: parseInt(patientAge),
+        sex: patientSex,
+        reasonForExam,
+      });
+      setResults(predictions);
+      setSavedId(patientId);
+      setUsingMock(mock);
+      setAnalysisTime(Math.round(performance.now() - startTime));
+    } catch (e) {
+      setError("Analysis failed. Please try again.");
     }
-
     setAnalyzing(false);
-    setTimeout(() => setInserted(true), 800);
   }
 
-  async function handleSavePatient() {
-    if (!patientName.trim() || !patientAge.trim()) return;
-    setSaveError(null);
-
-    try {
-      const apiUp = await isApiAvailable();
-      if (apiUp && results) {
-        const record = await createPatient({
-          name: patientName,
-          age: parseInt(patientAge),
-          sex: patientSex,
-          reason_for_exam: reasonForExam,
-          findings: results.map(r => ({
-            pathology: r.pathology,
-            confidence: r.confidence,
-            tier: r.tier,
-            tier_label: TIER_LABELS[r.tier] || "ROUTINE",
-            detected: r.confidence >= 0.3,
-          })),
-          severity_score: results.reduce((sum, r) => sum + r.confidence, 0) / results.length,
-          highest_tier: Math.min(...results.filter(r => r.confidence >= 0.3).map(r => r.tier)),
-        });
-        setSavedId(record.id);
-      } else {
-        // Mock save
-        setSavedId(`P${String(patients.length + 1).padStart(5, "0")}`);
-      }
-    } catch {
-      setSavedId(`P${String(patients.length + 1).padStart(5, "0")}`);
-    }
-  }
-
-  const highestTier = results ? Math.min(...results.filter(r => r.confidence >= 0.3).map(r => r.tier)) as 2 | 3 | 4 : 4;
-  const detectedCount = results ? results.filter(r => r.confidence >= 0.3).length : 0;
   const hasResults = results !== null;
+  const detectedFindings = results?.filter(f => f.confidence >= 0.5) || [];
+  const highestTier = detectedFindings.length > 0
+    ? Math.min(...detectedFindings.map(f => f.tier)) as 2 | 3 | 4
+    : 4;
+
+  function reset() {
+    setResults(null);
+    setPreviewUrl(null);
+    setSavedId(null);
+    setFileName("");
+    setUploadedFile(null);
+    setError(null);
+    setUsingMock(false);
+    setAnalysisTime(null);
+  }
 
   return (
     <div className="max-w-screen-2xl mx-auto px-8 py-8 h-[calc(100vh-64px)] overflow-y-auto">
@@ -115,10 +86,15 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
         <p className="text-sm text-gray-400 mt-1">Analyze a new chest radiograph</p>
       </div>
 
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+
       {!hasResults ? (
-        /* ── Upload + patient info side by side ── */
         <div className="grid grid-cols-[1fr_320px] gap-6">
-          {/* Left: upload area */}
+          {/* Upload area */}
           <div>
             <div
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -141,20 +117,19 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
                   className="mt-6 bg-white rounded-2xl border border-gray-100 p-6 text-center">
                   <Loader2 size={24} className="mx-auto mb-2 animate-spin text-gray-400" />
                   <p className="text-sm font-medium text-gray-900">Analyzing {fileName}...</p>
-                  <p className="text-xs text-gray-400 mt-1">Running inference on 5 conditions</p>
+                  <p className="text-xs text-gray-400 mt-1">Sending to API for inference</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Right: patient info form */}
+          {/* Patient info form */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <User size={14} className="text-gray-400" />
               Patient Information
             </h3>
 
-            {/* Select existing patient */}
             <div className="mb-4">
               <label className="text-xs text-gray-400 block mb-1.5">Assign to Existing Patient</label>
               <div className="relative">
@@ -163,14 +138,14 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
                   onChange={(e) => {
                     setSelectedPatient(e.target.value);
                     if (e.target.value) {
-                      const p = patients.find(pt => pt.id === Number(e.target.value));
+                      const p = existingPatients.find(pt => pt.id === Number(e.target.value));
                       if (p) { setPatientName(p.name); setPatientAge(String(p.age)); setPatientSex(p.sex); }
                     }
                   }}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10 appearance-none"
                 >
                   <option value="">— New Patient —</option>
-                  {patients.map(p => (
+                  {existingPatients.map(p => (
                     <option key={p.id} value={p.id}>{p.name} (P{String(p.id).padStart(3, "0")})</option>
                   ))}
                 </select>
@@ -192,7 +167,7 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
                 </div>
                 <div>
                   <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
-                  <select value={patientSex} onChange={e => setPatientSex(e.target.value)}
+                  <select value={patientSex} onChange={e => setPatientSex(e.target.value as "Male" | "Female")}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
                     <option>Male</option>
                     <option>Female</option>
@@ -208,43 +183,29 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
           </div>
         </div>
       ) : (
-        /* ── Results: X-ray preview (left) + analysis + patient info (right) ── */
+        /* ── Results ── */
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-[1fr_1fr] gap-6" style={{ height: "calc(100vh - 180px)" }}>
 
-          {/* Left: X-ray preview (constrained to viewport) */}
+          {/* Left: X-ray preview */}
           <div className="bg-gray-950 rounded-2xl overflow-hidden relative flex items-center justify-center">
-            {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Uploaded X-ray"
-                className="max-w-full max-h-full object-contain"
-                style={{ filter: "brightness(1.1) contrast(1.1)" }}
-              />
-            ) : (
-              <ImageIcon size={48} className="text-gray-700" />
+            {previewUrl && (
+              <img src={previewUrl} alt="Uploaded X-ray" className="max-w-full max-h-full object-contain"
+                style={{ filter: "brightness(1.1) contrast(1.1)" }} />
             )}
-
             <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-sm text-white text-[11px] font-medium px-3 py-1.5 rounded-lg">
               {fileName}
             </div>
-            <div className="absolute top-4 right-4 flex items-center gap-2">
-              <span className="bg-black/60 backdrop-blur-sm text-white text-[11px] font-medium px-3 py-1.5 rounded-lg">
-                Frontal · AP
-              </span>
-              {inserted && (
-                <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
-                  className="bg-emerald-500/90 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg flex items-center gap-1">
-                  <Check size={12} /> Analyzed
-                </motion.span>
-              )}
-            </div>
-
+            {savedId && (
+              <div className="absolute top-4 right-4 bg-emerald-500/90 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg flex items-center gap-1">
+                <Check size={12} /> Saved as {savedId}
+              </div>
+            )}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/60 text-xs">Severity Score</p>
-                  <p className="text-white text-2xl font-bold">{detectedCount} findings</p>
+                  <p className="text-white/60 text-xs">Results</p>
+                  <p className="text-white text-2xl font-bold">{detectedFindings.length} findings</p>
                 </div>
                 <span className="text-[10px] font-bold tracking-wide px-2.5 py-1 rounded"
                   style={{ color: TIER_COLORS[highestTier], backgroundColor: `${TIER_COLORS[highestTier]}25` }}>
@@ -256,40 +217,35 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
 
           {/* Right: results + patient info */}
           <div className="overflow-y-auto space-y-4">
-            {/* Summary */}
-            <motion.div className="bg-white rounded-2xl border p-4" style={{ borderColor: `${TIER_COLORS[highestTier]}40` }}
-              animate={inserted ? {} : { boxShadow: [`0 0 0 0px ${TIER_COLORS[highestTier]}30`, `0 0 0 8px ${TIER_COLORS[highestTier]}00`] }}
-              transition={{ duration: 1.2, repeat: inserted ? 0 : Infinity }}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {highestTier === 2 ? (
-                    <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center"><AlertTriangle size={16} className="text-red-500" /></div>
-                  ) : (
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center"><Activity size={16} className="text-amber-500" /></div>
-                  )}
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{detectedCount} finding{detectedCount !== 1 ? "s" : ""} detected</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[9px] font-bold tracking-wide px-1.5 py-0.5 rounded"
-                        style={{ color: TIER_COLORS[highestTier], backgroundColor: `${TIER_COLORS[highestTier]}12` }}>
-                        {TIER_LABELS[highestTier]}
-                      </span>
-                      {inserted && (
-                        <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
-                          <Check size={10} /> Added to queue
-                        </motion.span>
-                      )}
-                    </div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {highestTier === 2 ? (
+                  <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center"><AlertTriangle size={16} className="text-red-500" /></div>
+                ) : (
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center"><Activity size={16} className="text-amber-500" /></div>
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{detectedFindings.length} finding{detectedFindings.length !== 1 ? "s" : ""} detected</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-emerald-600 font-medium flex items-center gap-0.5">
+                      <Check size={10} /> Patient saved
+                    </span>
+                    <span className={`text-[10px] font-medium flex items-center gap-0.5 ${usingMock ? "text-amber-500" : "text-emerald-600"}`}>
+                      {usingMock ? "Mock predictions (no model loaded)" : "Real model inference"}
+                    </span>
+                    {analysisTime && (
+                      <span className="text-[10px] text-gray-400">{analysisTime}ms</span>
+                    )}
                   </div>
                 </div>
-                {inserted && onViewTriage && (
-                  <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onViewTriage}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors">
-                    View in Queue <ArrowRight size={12} />
-                  </motion.button>
-                )}
               </div>
-            </motion.div>
+              {onViewTriage && (
+                <button onClick={onViewTriage}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors">
+                  View in Queue <ArrowRight size={12} />
+                </button>
+              )}
+            </div>
 
             {/* Condition bars */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
@@ -301,7 +257,7 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
                 {results.map((r, i) => {
                   const pct = Math.round(r.confidence * 100);
                   const color = TIER_COLORS[r.tier];
-                  const detected = pct >= 30;
+                  const detected = pct >= 50;
                   return (
                     <div key={r.pathology} className={`flex items-center gap-3 ${!detected ? "opacity-40" : ""}`}>
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: detected ? color : "#e5e7eb" }} />
@@ -319,55 +275,23 @@ export default function UploadView({ onViewTriage }: UploadViewProps) {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-gray-400 mt-4 pt-3 border-t border-gray-50">Demo results — connect the ML backend for real inference.</p>
             </div>
 
-            {/* Patient details — editable before save */}
+            {/* Patient details */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <User size={14} className="text-gray-400" />
-                Patient Details
+                <User size={14} className="text-gray-400" /> Patient Details
               </h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-400 block mb-1">Name <span className="text-red-400">*</span></label>
-                  <input type="text" value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Patient name"
-                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-400 block mb-1">Age <span className="text-red-400">*</span></label>
-                    <input type="number" value={patientAge} onChange={e => setPatientAge(e.target.value)}
-                      className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-400 block mb-1">Sex <span className="text-red-400">*</span></label>
-                    <select value={patientSex} onChange={e => setPatientSex(e.target.value)}
-                      className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/10">
-                      <option>Male</option>
-                      <option>Female</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-400 block mb-1">Reason for Exam</label>
-                  <input type="text" value={reasonForExam} onChange={e => setReasonForExam(e.target.value)} placeholder="Clinical indication"
-                    className="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
-                </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-gray-400">Name</span><span className="font-medium text-gray-900">{patientName}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Age</span><span className="font-medium text-gray-900">{patientAge}</span></div>
+                <div className="flex justify-between"><span className="text-gray-400">Sex</span><span className="font-medium text-gray-900">{patientSex}</span></div>
+                {reasonForExam && <div className="flex justify-between"><span className="text-gray-400">Reason</span><span className="font-medium text-gray-900 text-right max-w-48">{reasonForExam}</span></div>}
+                {savedId && <div className="flex justify-between"><span className="text-gray-400">Patient ID</span><span className="font-medium text-emerald-600">{savedId}</span></div>}
               </div>
-
-              {/* Save button */}
-              <button
-                onClick={handleSavePatient}
-                disabled={!patientName.trim() || !patientAge.trim() || !!savedId}
-                className="w-full mt-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {savedId ? <><Check size={14} /> Saved as {savedId}</> : <><Save size={14} /> Save Patient Record</>}
-              </button>
-              {saveError && <p className="text-xs text-red-500 mt-1">{saveError}</p>}
             </div>
 
-            <button onClick={() => { setResults(null); setPreviewUrl(null); setInserted(false); setFileName(""); }}
+            <button onClick={reset}
               className="w-full py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
               Upload Another X-ray
             </button>

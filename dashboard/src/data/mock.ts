@@ -82,9 +82,18 @@ export const ACTIVE_CONDITIONS = [
 //   "Hernia",
 // ];
 
-// Sample chest X-ray images — local copies for instant demo loading
-// Originals from Wikimedia Commons (public domain, CC0)
+// Sample chest X-ray images — synthetic images from backend team + Wikimedia originals
 const SAMPLE_XRAY_URLS = [
+  "/sample-xrays/synth1.jpg",
+  "/sample-xrays/synth2.jpeg",
+  "/sample-xrays/synth3.jpg",
+  "/sample-xrays/synth4.jpg",
+  "/sample-xrays/synth5.jpg",
+  "/sample-xrays/synth6.jpg",
+  "/sample-xrays/synth7.jpg",
+  "/sample-xrays/synth8.jpg",
+  "/sample-xrays/synth9.jpg",
+  "/sample-xrays/synth10.jpg",
   "/sample-xrays/xray_normal.jpg",
   "/sample-xrays/xray_cardiomegaly_01.png",
   "/sample-xrays/xray_effusion_01.jpg",

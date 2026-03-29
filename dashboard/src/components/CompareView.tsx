@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { ArrowLeftRight, User, Calendar, Eye, Activity, Heart, Wind, ChevronDown, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { patients, type Patient } from "@/data/mock";
+import type { Patient } from "@/data/mock";
 import { TIER_COLORS, TIER_LABELS } from "@/lib/constants";
 
 function getHighestTier(p: Patient): number {
   return Math.min(...p.findings.map(f => f.tier));
 }
 
-export default function CompareView() {
+export default function CompareView({ patients }: { patients: Patient[] }) {
   const [selectedA, setSelectedA] = useState<number>(patients[0]?.id || 1);
   const [selectedB, setSelectedB] = useState<number>(patients[1]?.id || 2);
 
@@ -31,11 +31,11 @@ export default function CompareView() {
 
       {/* Patient selectors */}
       <div className="flex items-center gap-4 mb-8">
-        <PatientSelector value={selectedA} onChange={setSelectedA} label="Patient A" />
+        <PatientSelector value={selectedA} onChange={setSelectedA} label="Patient A" patients={patients} />
         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
           <ArrowLeftRight size={16} className="text-gray-400" />
         </div>
-        <PatientSelector value={selectedB} onChange={setSelectedB} label="Patient B" />
+        <PatientSelector value={selectedB} onChange={setSelectedB} label="Patient B" patients={patients} />
       </div>
 
       {/* Comparison grid */}
@@ -83,9 +83,9 @@ export default function CompareView() {
                   <td className="px-6 py-3.5">
                     <div className="flex items-center gap-2">
                       <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${confA}%`, backgroundColor: confA >= 30 ? color : "#e5e7eb" }} />
+                        <div className="h-full rounded-full" style={{ width: `${confA}%`, backgroundColor: confA >= 50 ? color : "#e5e7eb" }} />
                       </div>
-                      <span className={`text-sm font-semibold w-10 ${confA >= 30 ? "text-gray-900" : "text-gray-300"}`}>{confA}%</span>
+                      <span className={`text-sm font-semibold w-10 ${confA >= 50 ? "text-gray-900" : "text-gray-300"}`}>{confA}%</span>
                     </div>
                   </td>
                   <td className="px-6 py-3.5 text-center">
@@ -102,9 +102,9 @@ export default function CompareView() {
                   </td>
                   <td className="px-6 py-3.5">
                     <div className="flex items-center justify-end gap-2">
-                      <span className={`text-sm font-semibold w-10 text-right ${confB >= 30 ? "text-gray-900" : "text-gray-300"}`}>{confB}%</span>
+                      <span className={`text-sm font-semibold w-10 text-right ${confB >= 50 ? "text-gray-900" : "text-gray-300"}`}>{confB}%</span>
                       <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div className="h-full rounded-full" style={{ width: `${confB}%`, backgroundColor: confB >= 30 ? color : "#e5e7eb" }} />
+                        <div className="h-full rounded-full" style={{ width: `${confB}%`, backgroundColor: confB >= 50 ? color : "#e5e7eb" }} />
                       </div>
                     </div>
                   </td>
@@ -119,7 +119,7 @@ export default function CompareView() {
 }
 
 /* ── Patient Selector dropdown ── */
-function PatientSelector({ value, onChange, label }: { value: number; onChange: (id: number) => void; label: string }) {
+function PatientSelector({ value, onChange, label, patients }: { value: number; onChange: (id: number) => void; label: string; patients: Patient[] }) {
   return (
     <div className="flex-1">
       <label className="text-[11px] text-gray-400 uppercase tracking-wider font-medium mb-1.5 block">{label}</label>
@@ -235,7 +235,7 @@ function PatientCard({ patient, label }: { patient: Patient; label: string }) {
           {patient.findings.map(f => {
             const conf = Math.round(f.confidence * 100);
             const fc = TIER_COLORS[f.tier];
-            const detected = conf >= 30;
+            const detected = conf >= 50;
             return (
               <div key={f.pathology} className={`flex items-center gap-3 ${!detected ? "opacity-40" : ""}`}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: detected ? fc : "#e5e7eb" }} />

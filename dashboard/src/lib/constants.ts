@@ -23,7 +23,8 @@ export const TIER_STYLES: Record<number, { badge: string; dot: string; row: stri
 };
 
 // Detection threshold — findings below this % are grayed out
-export const DETECTION_THRESHOLD = 0.3;
+// Matches backend api/main.py threshold (conf >= 0.5)
+export const DETECTION_THRESHOLD = 0.5;
 
 // App
 export const APP_NAME = "Pneumanosis";
