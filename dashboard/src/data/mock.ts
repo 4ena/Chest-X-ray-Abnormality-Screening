@@ -34,6 +34,7 @@ export const CONDITION_TIERS: Record<string, { tier: Tier; label: TierLabel }> =
 
 export interface Patient {
   id: number;
+  apiId?: string; // ID from the API (e.g., "P00001")
   name: string;
   age: number;
   sex: "Male" | "Female";

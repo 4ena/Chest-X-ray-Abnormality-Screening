@@ -117,11 +117,15 @@ export function usePatients(): UsePatients {
   });
 
   const deletePatient = useCallback(async (id: number) => {
+    // Find the patient to get their API ID
+    const patient = [...uploadedPatients, ...apiPatients].find(p => p.id === id);
     setUploadedPatients(prev => prev.filter(p => p.id !== id));
     setApiPatients(prev => prev.filter(p => p.id !== id));
-    // Also try to delete from API
-    try { await apiDeletePatient(`P${String(id).padStart(5, "0")}`); } catch {}
-  }, []);
+    // Delete from API using the stored apiId
+    if (patient?.apiId) {
+      try { await apiDeletePatient(patient.apiId); } catch {}
+    }
+  }, [uploadedPatients, apiPatients]);
 
   const addPatientFromUpload = useCallback(async (data: {
     file: File; name: string; age: number; sex: "Male" | "Female"; reasonForExam: string;
@@ -181,6 +185,7 @@ export function usePatients(): UsePatients {
 
     const newPatient: Patient = {
       id: nextMockId++,
+      apiId: patientId,
       name: data.name,
       age: data.age,
       sex: data.sex,
