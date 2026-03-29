@@ -193,8 +193,3 @@ Interactive API docs: http://localhost:8000/docs
 - AI triage reduced turnaround time by 77% in clinical studies
 - Missed-case rates dropped from 44.8% to 2.6% with AI prioritization
 
-## License
-
-Apache 2.0 — See [LICENSE](LICENSE)
-
-Dataset: CC0 Public Domain (NIH/CheXpert)
