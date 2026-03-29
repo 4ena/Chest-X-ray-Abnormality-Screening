@@ -27,12 +27,12 @@ def main():
         print(f"Train Loss: {train_loss:.4f}")
         print(f"Val Loss: {val_loss:.4f} | Val AUC: {val_auc:.4f}")
 
-        checkpoint_path = os.path.join(MODEL_DIR, f"model_epoch_{epoch + 1}.pth")
+        checkpoint_path = os.path.join(MODEL_DIR, f"model_epoch_{epoch + 1}_synth.pth")
         torch.save(model.state_dict(), checkpoint_path)
 
         if val_auc > best_val_auc:
             best_val_auc = val_auc
-            best_model_path = os.path.join(MODEL_DIR, "best_model.pth")
+            best_model_path = os.path.join(MODEL_DIR, "best_model_synth.pth")
             torch.save(model.state_dict(), best_model_path)
             print(f"Saved checkpoint to {checkpoint_path}")
             print(f"New best model saved with AUC: {best_val_auc:.4f}")
