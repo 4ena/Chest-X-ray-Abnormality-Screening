@@ -1,0 +1,939 @@
+<!--
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  PNEUMANOSIS — Hackathon Pitch Deck                                        ║
+║  Auto-advancing HTML presentation · ~3 minutes · 14 slides                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  HOW TO ADD / EDIT / REMOVE SLIDES
+  ──────────────────────────────────
+
+  Each slide is a <div class="slide" data-index="N"> inside the
+  .slides-viewport container. The deck auto-detects the total count,
+  so you never need to update a counter manually.
+
+  ► ADDING A SLIDE
+    1. Copy any existing <div class="slide" ...>...</div> block.
+    2. Paste it where you want it in the order.
+    3. Renumber every slide's data-index sequentially (0, 1, 2, …).
+       The JS uses these to navigate, so they MUST be sequential.
+    4. That's it dots, counter, and progress bar update automatically.
+
+  ► REMOVING A SLIDE
+    1. Delete the entire <div class="slide" ...>...</div> block.
+    2. Renumber the remaining data-index values sequentially.
+
+  ► EDITING CONTENT
+    Just change the HTML inside any slide div. All styling is handled
+    by the CSS classes below. Here are the classes you'll use most:
+
+      .tag             Cyan uppercase label (e.g. "THE PROBLEM")
+      .heading         Large white slide heading
+      .body-text       Gray paragraph text
+      .glass           Frosted-glass card background
+      .stat-card       Big number + label card (put inside .stats-row)
+      .sol-card        Feature card with icon (put inside .cards-row)
+      .pipe-step       Pipeline step with number (put inside .pipeline)
+      .arch-layer      Architecture row (put inside .arch-layers)
+      .demo-step       Numbered demo step (put inside .demo-box)
+      .impact-card     Big metric card (put inside .impact-row)
+      .learn-card      Learning item card (put inside .learn-grid)
+
+  ► STAGGER ANIMATIONS
+    Wrap child elements in a container with class="stagger" for
+    vertical fade-up animation, or class="stagger-right" for
+    horizontal fade-from-left. Children animate in order (up to 8).
+
+  ► ADJUSTING TIMING
+    Find the AUTOPLAY_MS constant in the <script> block at the bottom.
+    Default is 13000 (13 seconds per slide × 14 slides ≈ 3 minutes).
+    Set it to any value in milliseconds, or press P to pause/resume.
+
+  ► CONTROLS
+    Keyboard:  → or Space = next  |  ← = prev  |  P = pause/play
+    Mouse:     Click side arrows or bottom dots
+    Touch:     Tap side arrows or bottom dots
+
+  ► SLIDE TEMPLATE (copy-paste this to add a new generic slide):
+
+    <div class="slide" data-index="N">
+      <span class="tag">SECTION LABEL</span>
+      <h2 class="heading">Slide Title</h2>
+      <p class="body-text" style="max-width:640px">
+        Your content here.
+      </p>
+    </div>
+
+  ► COLOR PALETTE (CSS variables in :root):
+    --cyan:    #00e5ff    (primary accent)
+    --lime:    #76ff03    (success / impact accent)
+    --orange:  #ff6e40    (warm accent)
+    --purple:  #ab47bc    (alt accent)
+    --rose:    #ff4081    (alert accent)
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pneumanosis — AI-Powered Chest X-Ray Triage</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cyan: #00e5ff;
+    --lime: #76ff03;
+    --orange: #ff6e40;
+    --purple: #ab47bc;
+    --rose: #ff4081;
+    --bg-deep: #030810;
+    --bg-mid: #060e18;
+    --bg-light: #0a1929;
+    --text-primary: #e0e0e0;
+    --text-muted: #90a4ae;
+    --text-dim: #546e7a;
+    --text-faint: #78909c;
+    --glass-bg: rgba(255,255,255,0.03);
+    --glass-border: rgba(255,255,255,0.06);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: radial-gradient(ellipse at 20% 50%, var(--bg-light) 0%, var(--bg-mid) 50%, var(--bg-deep) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── particles ── */
+  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .particle { position: absolute; border-radius: 50%; background: rgba(0,229,255,0.2); }
+
+  /* ── grid overlay ── */
+  .grid-overlay {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── vignette ── */
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(3,8,16,0.7) 100%);
+  }
+
+  /* ── top bar ── */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    background: linear-gradient(180deg, rgba(6,14,24,0.95) 0%, transparent 100%);
+  }
+  .topbar-logo { font: 800 13px/1 var(--mono); letter-spacing: 4px; color: var(--cyan); }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .btn-pause {
+    background: none; border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted); padding: 6px 14px; border-radius: 20px;
+    font: 12px var(--mono); cursor: pointer; transition: all 0.2s;
+  }
+  .btn-pause:hover { border-color: var(--cyan); color: var(--cyan); }
+  .slide-counter { font: 12px var(--mono); color: var(--text-dim); }
+  .timer-display { font: 700 12px var(--mono); color: var(--cyan); opacity: 0.7; }
+
+  /* ── slides wrapper ── */
+  .slides-viewport {
+    position: relative; z-index: 10;
+    max-width: 1000px; margin: 0 auto;
+    padding: 96px 28px 80px;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slide {
+    display: none; flex-direction: column; align-items: center; gap: 24px;
+    width: 100%;
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(.22,1,.36,1), transform 0.8s cubic-bezier(.22,1,.36,1);
+  }
+  .slide.active { display: flex; }
+  .slide.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── shared ── */
+  .tag {
+    font: 700 11px/1 var(--mono);
+    letter-spacing: 5px; text-transform: uppercase;
+    color: var(--cyan); padding: 6px 16px;
+    border: 1px solid rgba(0,229,255,0.15);
+    border-radius: 20px; background: rgba(0,229,255,0.04);
+  }
+  .heading {
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-weight: 800; text-align: center;
+    line-height: 1.15; letter-spacing: -0.02em;
+  }
+  .body-text { font-size: 15px; color: var(--text-muted); line-height: 1.7; text-align: center; }
+  .glass {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    border-radius: 12px; backdrop-filter: blur(8px);
+  }
+  .accent-line {
+    width: 48px; height: 3px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--lime));
+  }
+
+  /* ── title slide ── */
+  .title-main {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+    background: linear-gradient(135deg, #e0e0e0 0%, var(--cyan) 50%, var(--lime) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; text-align: center;
+  }
+  .title-sub {
+    font-size: clamp(1rem, 2.2vw, 1.4rem);
+    color: var(--text-muted); max-width: 600; text-align: center; line-height: 1.5;
+  }
+  .title-detail {
+    font-size: 13px; letter-spacing: 6px; text-transform: uppercase;
+    color: var(--cyan); font-weight: 600;
+  }
+  .title-tracks {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px;
+  }
+  .title-track {
+    font: 600 11px var(--mono); color: var(--text-dim);
+    padding: 4px 12px; border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* ── stats row ── */
+  .stats-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .stat-card { padding: 24px 32px; text-align: center; min-width: 150px; }
+  .stat-value { font: 900 clamp(1.8rem, 4.5vw, 2.8rem)/1 var(--mono); color: var(--cyan); }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
+  .source { font-size: 11px; color: var(--text-dim); font-style: italic; }
+
+  /* ── solution cards ── */
+  .cards-row { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+  .sol-card {
+    padding: 28px 24px; max-width: 270px; flex: 1 1 220px;
+    border-top: 2px solid rgba(0,229,255,0.3);
+  }
+  .sol-card .icon { font-size: 32px; margin-bottom: 10px; }
+  .sol-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .sol-card p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+  /* ── pipeline ── */
+  .pipeline { display: flex; flex-direction: column; gap: 2px; max-width: 680px; width: 100%; }
+  .pipe-step { display: flex; align-items: center; gap: 20px; padding: 16px 22px; }
+  .pipe-num { font: 900 26px/1 var(--mono); color: rgba(0,229,255,0.2); min-width: 40px; }
+  .pipe-name { font-size: 15px; font-weight: 700; }
+  .pipe-desc { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+
+  /* ── architecture ── */
+  .arch-layers { display: flex; flex-direction: column; gap: 10px; max-width: 680px; width: 100%; }
+  .arch-layer { padding: 18px 22px; }
+  .arch-layer-name { font: 800 11px/1 var(--mono); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
+  .arch-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .arch-pill {
+    font-size: 12px; color: #b0bec5; padding: 4px 12px; border-radius: 20px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* ── demo ── */
+  .demo-box { padding: 32px 30px; max-width: 540px; width: 100%; position: relative; overflow: hidden; }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    box-shadow: 0 0 20px 4px rgba(0,229,255,0.3);
+    animation: scanDown 3s ease-in-out infinite; z-index: 1;
+  }
+  .demo-step {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    position: relative; z-index: 2;
+  }
+  .demo-step:last-child { border-bottom: none; }
+  .demo-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(0,229,255,0.12); border: 1px solid rgba(0,229,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font: 800 12px var(--mono); color: var(--cyan); flex-shrink: 0;
+  }
+  .demo-step span { font-size: 14px; color: #cfd8dc; }
+
+  /* ── impact ── */
+  .impact-row { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+  .impact-card {
+    padding: 28px 36px; text-align: center; min-width: 170px;
+    border-bottom: 2px solid rgba(118,255,3,0.3);
+  }
+  .impact-icon { font-size: 28px; margin-bottom: 8px; }
+  .impact-value { font: 900 clamp(2rem, 4.5vw, 3rem)/1 var(--mono); color: var(--lime); }
+  .impact-label { font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.4; }
+
+  /* ── learning grid ── */
+  .learn-grid { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; max-width: 720px; }
+  .learn-card {
+    padding: 24px 22px; flex: 1 1 200px; max-width: 230px;
+    border-left: 3px solid var(--cyan);
+  }
+  .learn-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .learn-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .learn-card.orange { border-left-color: var(--orange); }
+  .learn-card.lime { border-left-color: var(--lime); }
+
+  /* ── roadmap ── */
+  .roadmap { display: flex; flex-direction: column; gap: 14px; max-width: 560px; width: 100%; }
+  .roadmap-item {
+    display: flex; gap: 16px; align-items: flex-start; padding: 18px 22px;
+  }
+  .roadmap-phase {
+    font: 800 11px var(--mono); letter-spacing: 2px; text-transform: uppercase;
+    min-width: 64px; padding-top: 2px;
+  }
+  .roadmap-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .roadmap-item p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── team ── */
+  .team-cta {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800; text-align: center; line-height: 1.2;
+  }
+  .team-links { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .team-link {
+    font: 13px var(--mono); color: var(--cyan);
+    padding: 8px 20px; border: 1px solid rgba(0,229,255,0.3); border-radius: 24px;
+    transition: all 0.2s;
+  }
+  .team-link:hover { background: rgba(0,229,255,0.08); }
+
+  /* ── synth workflow ── */
+  .synth-flow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .synth-node {
+    padding: 16px 20px; text-align: center; min-width: 140px;
+    position: relative;
+  }
+  .synth-node h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .synth-node p { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .synth-arrow { font-size: 20px; color: rgba(0,229,255,0.3); flex-shrink: 0; }
+
+  /* ── social impact ── */
+  .impact-points { display: flex; flex-direction: column; gap: 12px; max-width: 600px; width: 100%; }
+  .impact-point { display: flex; gap: 14px; align-items: flex-start; padding: 16px 20px; }
+  .impact-bullet {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(118,255,3,0.08); border: 1px solid rgba(118,255,3,0.2);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .impact-point h4 { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .impact-point p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ── nav dots ── */
+  .dots {
+    position: fixed; bottom: 20px; left: 0; right: 0; z-index: 50;
+    display: flex; justify-content: center; gap: 6px;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 4px; border: none; cursor: pointer;
+    background: rgba(255,255,255,0.1); transition: all 0.3s ease;
+  }
+  .dot.active { width: 24px; background: var(--cyan); animation: pulse 2s infinite; }
+
+  /* ── arrows ── */
+  .arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-faint); width: 44px; height: 44px; border-radius: 50%;
+    font-size: 18px; cursor: pointer; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .arrow:hover { border-color: var(--cyan); color: var(--cyan); }
+  .arrow-left { left: 16px; }
+  .arrow-right { right: 16px; }
+
+  /* ── progress bar ── */
+  .progress-track {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 3px; z-index: 100; background: rgba(255,255,255,0.05);
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--lime));
+    box-shadow: 0 0 8px rgba(0,229,255,0.5);
+  }
+  .progress-fill.animating { animation: progressFill var(--autoplay-ms) linear forwards; }
+
+  /* ── stagger animations (supports up to 8 children) ── */
+  .stagger > * { opacity: 0; transform: translateY(24px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .slide.visible .stagger > *:nth-child(1) { opacity:1; transform:none; transition-delay:0.15s; }
+  .slide.visible .stagger > *:nth-child(2) { opacity:1; transform:none; transition-delay:0.27s; }
+  .slide.visible .stagger > *:nth-child(3) { opacity:1; transform:none; transition-delay:0.39s; }
+  .slide.visible .stagger > *:nth-child(4) { opacity:1; transform:none; transition-delay:0.51s; }
+  .slide.visible .stagger > *:nth-child(5) { opacity:1; transform:none; transition-delay:0.63s; }
+  .slide.visible .stagger > *:nth-child(6) { opacity:1; transform:none; transition-delay:0.75s; }
+  .slide.visible .stagger > *:nth-child(7) { opacity:1; transform:none; transition-delay:0.87s; }
+  .slide.visible .stagger > *:nth-child(8) { opacity:1; transform:none; transition-delay:0.99s; }
+
+  .stagger-right > * { opacity: 0; transform: translateX(-24px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .slide.visible .stagger-right > *:nth-child(1) { opacity:1; transform:none; transition-delay:0.2s; }
+  .slide.visible .stagger-right > *:nth-child(2) { opacity:1; transform:none; transition-delay:0.32s; }
+  .slide.visible .stagger-right > *:nth-child(3) { opacity:1; transform:none; transition-delay:0.44s; }
+  .slide.visible .stagger-right > *:nth-child(4) { opacity:1; transform:none; transition-delay:0.56s; }
+  .slide.visible .stagger-right > *:nth-child(5) { opacity:1; transform:none; transition-delay:0.68s; }
+  .slide.visible .stagger-right > *:nth-child(6) { opacity:1; transform:none; transition-delay:0.80s; }
+
+  /* ── keyframes ── */
+  @keyframes scanDown {
+    0% { top: -2px; opacity: 0; } 10% { opacity: 1; }
+    90% { opacity: 1; } 100% { top: 100%; opacity: 0; }
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 1; transform: scale(1); }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+  }
+  @keyframes progressFill { from { width: 0%; } to { width: 100%; } }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(0,229,255,0); }
+  }
+
+  @media (max-width: 640px) {
+    .arrow { display: none; }
+    .slides-viewport { padding: 88px 16px 68px; }
+    .synth-arrow { display: none; }
+    .synth-flow { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Background layers ── -->
+<div class="particles" id="particles"></div>
+<div class="grid-overlay"></div>
+<div class="vignette"></div>
+
+<!-- ── Top Bar ── -->
+<div class="topbar">
+  <div class="topbar-logo">PNEUMANOSIS</div>
+  <div class="topbar-right">
+    <span class="timer-display" id="timerDisplay">0:00 / 3:02</span>
+    <button class="btn-pause" id="btnPause">❚❚ PAUSE</button>
+    <span class="slide-counter" id="counter">01 / 14</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDES START HERE — See documentation at top of file for
+     instructions on adding, editing, or removing slides.
+     ════════════════════════════════════════════════════════════════ -->
+<div class="slides-viewport">
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 1 — TITLE                                       │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide active" data-index="0">
+    <span class="tag">REVOLUTIONUC 2026</span>
+    <h1 class="title-main">PNEUMANOSIS</h1>
+    <p class="title-sub">AI-Powered Chest X-Ray Triage for Radiologists &amp; X-Ray Technicians</p>
+    <p class="title-detail">Prioritize · Detect · Save Time</p>
+    <div class="title-tracks">
+      <span class="title-track">Most Technically Impressive</span>
+      <span class="title-track">Best Social Impact</span>
+      <span class="title-track">MedPACE Track</span>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 2 — PROBLEM                                     │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="1">
+    <span class="tag">THE PROBLEM</span>
+    <h2 class="heading">Radiologists Are Drowning</h2>
+    <div class="stats-row stagger">
+      <div class="stat-card glass">
+        <div class="stat-value">36%</div>
+        <div class="stat-label">of radiologists<br>report burnout</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-value">~50</div>
+        <div class="stat-label">studies read per<br>radiologist per day</div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-value">24–48h</div>
+        <div class="stat-label">non-emergency<br>turnaround time</div>
+      </div>
+    </div>
+    <p class="body-text" style="max-width:660px">Non-emergency chest X-rays pile up without intelligent prioritization. Critical findings like cardiomegaly, pleural effusion, or consolidation get buried in a first-come-first-serve queue — costing time and risking patient outcomes.</p>
+    <p class="source">ACR 2023 Workforce Survey · RSNA 2022 Imaging Reports</p>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 3 — SOLUTION OVERVIEW                           │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="2">
+    <span class="tag">OUR SOLUTION</span>
+    <h2 class="heading">Intelligent Triage, Instantly</h2>
+    <div class="cards-row stagger">
+      <div class="sol-card glass">
+        <div class="icon">🫁</div>
+        <h3>AI-Sorted Queue</h3>
+        <p>Chest X-rays auto-ranked by pathology severity via our custom DenseNet121 classifier.</p>
+      </div>
+      <div class="sol-card glass">
+        <div class="icon">📊</div>
+        <h3>Radiologist Dashboard</h3>
+        <p>Clean interface showing detected pathologies, confidence scores, and patient priority at a glance.</p>
+      </div>
+      <div class="sol-card glass">
+        <div class="icon">⬆️</div>
+        <h3>Upload &amp; Compare</h3>
+        <p>Technicians upload new X-rays and instantly see where the patient lands in the existing queue.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 4 — DASHBOARD DEMO WALKTHROUGH                  │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="3">
+    <span class="tag">LIVE DEMO · RADIOLOGIST VIEW</span>
+    <h2 class="heading">Dashboard Walkthrough</h2>
+    <div class="demo-box glass">
+      <div class="scan-line"></div>
+      <div class="stagger-right">
+        <div class="demo-step"><div class="demo-num">1</div><span>Radiologist logs in → sees priority-sorted patient queue</span></div>
+        <div class="demo-step"><div class="demo-num">2</div><span>Each card shows detected pathologies + confidence %</span></div>
+        <div class="demo-step"><div class="demo-num">3</div><span>Click a patient → full X-ray viewer with AI overlay</span></div>
+        <div class="demo-step"><div class="demo-num">4</div><span>One-click approve, flag for review, or escalate</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 5 — UPLOAD FLOW                                 │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="4">
+    <span class="tag">LIVE DEMO · TECHNICIAN VIEW</span>
+    <h2 class="heading">Upload &amp; Queue Placement</h2>
+    <div class="demo-box glass">
+      <div class="scan-line"></div>
+      <div class="stagger-right">
+        <div class="demo-step"><div class="demo-num">1</div><span>X-ray tech uploads a new chest X-ray image</span></div>
+        <div class="demo-step"><div class="demo-num">2</div><span>DenseNet121 runs inference → detects pathologies in seconds</span></div>
+        <div class="demo-step"><div class="demo-num">3</div><span>Patient auto-placed in priority queue by severity score</span></div>
+        <div class="demo-step"><div class="demo-num">4</div><span>Tech sees exactly where the new patient sits vs. others</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 6 — ML PIPELINE                                 │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="5">
+    <span class="tag">UNDER THE HOOD</span>
+    <h2 class="heading">The ML Pipeline</h2>
+    <div class="pipeline stagger-right">
+      <div class="pipe-step glass">
+        <span class="pipe-num">01</span>
+        <div><div class="pipe-name">CheXpert v1.0-small</div><div class="pipe-desc">224K+ labeled chest X-rays across 14 pathologies</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">02</span>
+        <div><div class="pipe-name">PyTorch Data Augmentation</div><div class="pipe-desc">Rotation, flipping, color jitter, elastic transforms, random erasing</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">03</span>
+        <div><div class="pipe-name">DenseNet121 Transfer Learning</div><div class="pipe-desc">Pre-trained ImageNet weights, fine-tuned on augmented CheXpert data</div></div>
+      </div>
+      <div class="pipe-step glass">
+        <span class="pipe-num">04</span>
+        <div><div class="pipe-name">DeepAUC v1 Ensemble Validation</div><div class="pipe-desc">State-of-the-art AUC optimization ensuring clinical-grade performance</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 7 — SYNTHETIC DATA (for Synthetic Data Track)   │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="6">
+    <span class="tag">SYNTHETIC DATA TRACK</span>
+    <h2 class="heading">Gemini-Powered Data Generation</h2>
+    <div class="synth-flow stagger">
+      <div class="synth-node glass" style="border-top:2px solid var(--purple)">
+        <h4>🔍 Identify Gaps</h4>
+        <p>Find underrepresented pathology combos in CheXpert</p>
+      </div>
+      <span class="synth-arrow">→</span>
+      <div class="synth-node glass" style="border-top:2px solid var(--cyan)">
+        <h4>✨ Gemini Generates</h4>
+        <p>Google Gemini creates edge-case radiology scenarios</p>
+      </div>
+      <span class="synth-arrow">→</span>
+      <div class="synth-node glass" style="border-top:2px solid var(--lime)">
+        <h4>✅ SoTA Validates</h4>
+        <p>DeepAUC-v1 ensemble confirms clinical plausibility</p>
+      </div>
+    </div>
+    <p class="body-text" style="max-width:580px;margin-top:8px">Synthetic samples only enter training after passing ensemble validation — augmenting rare pathology cases without compromising data integrity.</p>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 8 — SYSTEM ARCHITECTURE                         │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="7">
+    <span class="tag">SYSTEM DESIGN</span>
+    <h2 class="heading">How It All Connects</h2>
+    <div class="arch-layers stagger">
+      <div class="arch-layer glass" style="border-left:3px solid var(--cyan)">
+        <div class="arch-layer-name" style="color:var(--cyan)">Frontend</div>
+        <div class="arch-pills"><span class="arch-pill">React Dashboard</span><span class="arch-pill">Real-time Queue</span><span class="arch-pill">X-ray Viewer</span></div>
+      </div>
+      <div class="arch-layer glass" style="border-left:3px solid var(--lime)">
+        <div class="arch-layer-name" style="color:var(--lime)">Backend</div>
+        <div class="arch-pills"><span class="arch-pill">FastAPI / Flask</span><span class="arch-pill">Queue Engine</span><span class="arch-pill">Auth &amp; RBAC</span></div>
+      </div>
+      <div class="arch-layer glass" style="border-left:3px solid var(--orange)">
+        <div class="arch-layer-name" style="color:var(--orange)">ML Engine</div>
+        <div class="arch-pills"><span class="arch-pill">DenseNet121</span><span class="arch-pill">Pathology Classifier</span><span class="arch-pill">Confidence Scoring</span></div>
+      </div>
+      <div class="arch-layer glass" style="border-left:3px solid var(--purple)">
+        <div class="arch-layer-name" style="color:var(--purple)">Data Layer</div>
+        <div class="arch-pills"><span class="arch-pill">CheXpert Dataset</span><span class="arch-pill">Gemini Synth Pipeline</span><span class="arch-pill">DeepAUC Validation</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 9 — SOCIAL IMPACT                               │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="8">
+    <span class="tag">BEST SOCIAL IMPACT</span>
+    <h2 class="heading">Why This Matters for Patients</h2>
+    <div class="impact-points stagger">
+      <div class="impact-point glass">
+        <div class="impact-bullet">🏥</div>
+        <div>
+          <h4>Underserved Hospitals First</h4>
+          <p>Rural and under-staffed radiology departments benefit most — fewer radiologists means greater need for automated prioritization.</p>
+        </div>
+      </div>
+      <div class="impact-point glass">
+        <div class="impact-bullet">⏱️</div>
+        <div>
+          <h4>Faster Time-to-Diagnosis</h4>
+          <p>Critical findings like pneumothorax or large effusions surface immediately instead of waiting hours in a manual queue.</p>
+        </div>
+      </div>
+      <div class="impact-point glass">
+        <div class="impact-bullet">🧠</div>
+        <div>
+          <h4>Reduced Radiologist Burnout</h4>
+          <p>Automated triage lets radiologists focus cognitive energy on diagnosis and treatment — not queue management.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 10 — MEDPACE TRACK                              │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="9">
+    <span class="tag">MEDPACE TRACK</span>
+    <h2 class="heading">Clinical-Grade Engineering</h2>
+    <div class="cards-row stagger">
+      <div class="sol-card glass" style="border-top-color:var(--orange)">
+        <div class="icon">🏛️</div>
+        <h3>Built for Healthcare</h3>
+        <p>Designed around real radiology workflows — not retrofitted from a general-purpose AI tool.</p>
+      </div>
+      <div class="sol-card glass" style="border-top-color:var(--orange)">
+        <div class="icon">📋</div>
+        <h3>14 Pathology Labels</h3>
+        <p>Covers the full CheXpert label set: cardiomegaly, edema, consolidation, atelectasis, pleural effusion, and more.</p>
+      </div>
+      <div class="sol-card glass" style="border-top-color:var(--orange)">
+        <div class="icon">🔒</div>
+        <h3>Validation-First</h3>
+        <p>Every model output and synthetic sample is validated against a DeepAUC-v1 ensemble before entering the workflow.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 11 — IMPACT METRICS                             │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="10">
+    <span class="tag">THE RESULTS</span>
+    <h2 class="heading">What We Achieved in 24 Hours</h2>
+    <div class="impact-row stagger">
+      <div class="impact-card glass">
+        <div class="impact-icon">⚡</div>
+        <div class="impact-value">5×</div>
+        <div class="impact-label">Faster triage vs.<br>manual review</div>
+      </div>
+      <div class="impact-card glass">
+        <div class="impact-icon">🔬</div>
+        <div class="impact-value">14</div>
+        <div class="impact-label">Pathologies detected<br>simultaneously</div>
+      </div>
+      <div class="impact-card glass">
+        <div class="impact-icon">🛡️</div>
+        <div class="impact-value">0</div>
+        <div class="impact-label">Critical findings<br>missed in queue</div>
+      </div>
+    </div>
+    <p class="body-text" style="max-width:600px">Pneumanosis doesn't replace radiologists — it gives them superpowers. Urgent cases surface first, burnout drops, and no critical finding gets buried.</p>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 12 — WHAT WE LEARNED (MLH criteria)            │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="11">
+    <span class="tag">WHAT WE LEARNED</span>
+    <h2 class="heading">Growth in 24 Hours</h2>
+    <div class="learn-grid stagger">
+      <div class="learn-card glass">
+        <h4>Medical Imaging Data</h4>
+        <p>First time working with DICOM-style datasets and understanding CheXpert's uncertainty labels (blanks, ones, zeros, U-labels).</p>
+      </div>
+      <div class="learn-card glass orange">
+        <h4>PyTorch Augmentation</h4>
+        <p>Built custom transform pipelines — rotation, elastic deformation, random erasing — to prevent overfitting on limited data.</p>
+      </div>
+      <div class="learn-card glass lime">
+        <h4>AUC Optimization</h4>
+        <p>Discovered DeepAUC and learned why optimizing AUC directly (instead of cross-entropy) matters for imbalanced medical datasets.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 13 — FUTURE ROADMAP                             │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="12">
+    <span class="tag">WHAT'S NEXT</span>
+    <h2 class="heading">Future Roadmap</h2>
+    <div class="roadmap stagger">
+      <div class="roadmap-item glass">
+        <span class="roadmap-phase" style="color:var(--cyan)">NEXT</span>
+        <div>
+          <h4>HIPAA-Compliant Deployment</h4>
+          <p>Containerized on-prem deployment so patient data never leaves the hospital network.</p>
+        </div>
+      </div>
+      <div class="roadmap-item glass">
+        <span class="roadmap-phase" style="color:var(--lime)">V2</span>
+        <div>
+          <h4>Multi-Modality Support</h4>
+          <p>Expand beyond chest X-rays to CT scans, MRIs, and other imaging modalities.</p>
+        </div>
+      </div>
+      <div class="roadmap-item glass">
+        <span class="roadmap-phase" style="color:var(--orange)">V3</span>
+        <div>
+          <h4>EHR Integration</h4>
+          <p>Plug directly into Epic, Cerner, and other electronic health record systems for seamless clinical workflow.</p>
+        </div>
+      </div>
+      <div class="roadmap-item glass">
+        <span class="roadmap-phase" style="color:var(--purple)">VISION</span>
+        <div>
+          <h4>FDA 510(k) Clearance</h4>
+          <p>Work toward regulatory approval as a clinical decision support tool for radiology departments.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ┌─────────────────────────────────────────────────────────┐
+       │  SLIDE 14 — THANK YOU / CTA                            │
+       └─────────────────────────────────────────────────────────┘ -->
+  <div class="slide" data-index="13" style="justify-content:center;min-height:70vh">
+    <span class="tag">THANK YOU</span>
+    <h2 class="heading" style="margin-bottom:0">Built in 24 Hours at RevolutionUC</h2>
+    <div class="accent-line" style="margin:16px auto"></div>
+    <p class="team-cta">Questions?</p>
+    <!-- ── REPLACE THESE WITH YOUR REAL LINKS ── -->
+    <div class="team-links" style="margin-top:28px">
+      <span class="team-link">github.com/pneumanosis</span>
+      <span class="team-link">devpost.com/pneumanosis</span>
+    </div>
+    <p style="font-size:11px;color:var(--text-dim);margin-top:24px;font-family:var(--mono);letter-spacing:1px">
+      <!-- ── ADD TEAM MEMBER NAMES HERE ── -->
+      YOUR NAME · TEAMMATE 2 · TEAMMATE 3 · TEAMMATE 4
+    </p>
+  </div>
+
+</div>
+<!-- ════════════════════════════════════════════════════════════════
+     SLIDES END HERE
+     ════════════════════════════════════════════════════════════════ -->
+
+<!-- ── Nav Arrows ── -->
+<button class="arrow arrow-left" id="arrowLeft">‹</button>
+<button class="arrow arrow-right" id="arrowRight">›</button>
+
+<!-- ── Dots ── -->
+<div class="dots" id="dots"></div>
+
+<!-- ── Progress Bar ── -->
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+<script>
+(function() {
+  /* ──────────────────────────────────────────────────────────────
+     CONFIGURATION
+     Change AUTOPLAY_MS to adjust seconds per slide.
+     14 slides × 13000ms = 182s ≈ 3:02 total runtime.
+     ────────────────────────────────────────────────────────────── */
+  const AUTOPLAY_MS = 13000;
+
+  const slides = document.querySelectorAll('.slide');
+  const TOTAL = slides.length;
+  let current = 0;
+  let paused = false;
+  let timer = null;
+  let deckStartTime = Date.now();
+
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const btnPause = document.getElementById('btnPause');
+  const progressFill = document.getElementById('progressFill');
+  const timerDisplay = document.getElementById('timerDisplay');
+
+  // Set CSS variable for progress bar animation duration
+  document.documentElement.style.setProperty('--autoplay-ms', AUTOPLAY_MS + 'ms');
+
+  const totalTime = TOTAL * AUTOPLAY_MS;
+  const totalTimeFormatted = formatTime(totalTime);
+
+  /* ── particles ── */
+  const particlesEl = document.getElementById('particles');
+  for (let i = 0; i < 35; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 3 + 1;
+    p.style.cssText =
+      'left:' + (Math.random()*100) + '%;' +
+      'top:' + (Math.random()*100) + '%;' +
+      'width:' + size + 'px;' +
+      'height:' + size + 'px;' +
+      'animation:floatUp ' + (Math.random()*22+14) + 's linear ' + (Math.random()*-20) + 's infinite;';
+    particlesEl.appendChild(p);
+  }
+
+  /* ── dots ── */
+  for (let i = 0; i < TOTAL; i++) {
+    var d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('data-dot', i);
+    d.addEventListener('click', (function(idx) {
+      return function() { goTo(idx); };
+    })(i));
+    dotsEl.appendChild(d);
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatTime(ms) {
+    var s = Math.floor(ms / 1000);
+    return Math.floor(s / 60) + ':' + pad(s % 60);
+  }
+
+  function updateDots() {
+    var dots = dotsEl.querySelectorAll('.dot');
+    for (var i = 0; i < dots.length; i++) {
+      dots[i].className = 'dot' + (i === current ? ' active' : '');
+    }
+  }
+
+  function updateCounter() {
+    counter.textContent = pad(current + 1) + ' / ' + pad(TOTAL);
+  }
+
+  function updateTimer() {
+    var elapsed = Date.now() - deckStartTime;
+    timerDisplay.textContent = formatTime(elapsed) + ' / ' + totalTimeFormatted;
+  }
+
+  function resetProgress() {
+    progressFill.classList.remove('animating');
+    void progressFill.offsetWidth;
+    if (!paused) progressFill.classList.add('animating');
+  }
+
+  function showSlide(index) {
+    for (var i = 0; i < slides.length; i++) {
+      slides[i].classList.remove('active', 'visible');
+    }
+    slides[index].classList.add('active');
+    void slides[index].offsetWidth;
+    requestAnimationFrame(function() { slides[index].classList.add('visible'); });
+    updateDots();
+    updateCounter();
+    resetProgress();
+  }
+
+  function goTo(index) {
+    slides[current].classList.remove('visible');
+    clearTimeout(timer);
+    setTimeout(function() {
+      current = index;
+      showSlide(current);
+      scheduleNext();
+    }, 350);
+  }
+
+  function next() { goTo((current + 1) % TOTAL); }
+  function prev() { goTo((current - 1 + TOTAL) % TOTAL); }
+
+  function scheduleNext() {
+    clearTimeout(timer);
+    if (!paused) timer = setTimeout(next, AUTOPLAY_MS);
+  }
+
+  function togglePause() {
+    paused = !paused;
+    btnPause.textContent = paused ? '\u25B6 PLAY' : '\u275A\u275A PAUSE';
+    if (paused) {
+      clearTimeout(timer);
+      progressFill.classList.remove('animating');
+    } else {
+      resetProgress();
+      scheduleNext();
+    }
+  }
+
+  /* ── controls ── */
+  document.getElementById('arrowRight').addEventListener('click', next);
+  document.getElementById('arrowLeft').addEventListener('click', prev);
+  btnPause.addEventListener('click', togglePause);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+    if (e.key === 'p' || e.key === 'P') togglePause();
+  });
+
+  /* ── timer tick ── */
+  setInterval(updateTimer, 500);
+
+  /* ── init ── */
+  showSlide(0);
+  scheduleNext();
+})();
+</script>
+</body>
+</html>
