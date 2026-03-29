@@ -25,7 +25,7 @@ export default function PatientDetailView({ patient, selectedFinding, onSelectFi
   const tierColor = TIER_COLORS[highestTier];
 
   return (
-    <div className="h-[calc(100vh-64px)] flex">
+    <div className="h-[calc(100vh-64px)] max-w-screen-2xl mx-auto flex">
       {/* ── Left: Patient list ── */}
       <div className="w-[240px] border-r border-gray-100 overflow-y-auto bg-white">
         <div className="px-4 py-4 border-b border-gray-50">
