@@ -8,7 +8,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "ChestGuard — AI Triage Co-Pilot",
+  title: "Pneumanosis — AI Triage Co-Pilot",
   description: "Chest X-ray abnormality screening and triage dashboard",
 };
 

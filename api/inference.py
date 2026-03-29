@@ -18,7 +18,7 @@ from torchvision import transforms
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "chestguard.pth")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "pneumanosis.pth")
 MODEL_VERSION = "0.1.0-mock"
 IMAGE_SIZE = 224
 NUM_CLASSES = 5
@@ -55,15 +55,15 @@ def _load_model():
             _model_loaded = True
             _using_mock = False
             MODEL_VERSION = "0.1.0"
-            print(f"[ChestGuard] Model loaded from {MODEL_PATH}")
+            print(f"[Pneumanosis] Model loaded from {MODEL_PATH}")
         except Exception as e:
-            print(f"[ChestGuard] Failed to load model: {e}")
-            print("[ChestGuard] Falling back to mock predictions")
+            print(f"[Pneumanosis] Failed to load model: {e}")
+            print("[Pneumanosis] Falling back to mock predictions")
             _model_loaded = False
             _using_mock = True
     else:
-        print(f"[ChestGuard] No model found at {MODEL_PATH}")
-        print("[ChestGuard] Using mock predictions — drop .pth into models/ to enable real inference")
+        print(f"[Pneumanosis] No model found at {MODEL_PATH}")
+        print("[Pneumanosis] Using mock predictions — drop .pth into models/ to enable real inference")
         _using_mock = True
 
 
