@@ -25,15 +25,13 @@ TARGET_COLUMNS = CLASS_NAMES
 #you can change these
 
 train_tf = T.Compose([
-
     T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-
+    T.RandomRotation(3),
+    T.ColorJitter(brightness=0.03, contrast=0.03),
     T.ToTensor(),
 
     T.Normalize([0.485, 0.456, 0.406],
-
                 [0.229, 0.224, 0.225]),
-
 ])
 
   

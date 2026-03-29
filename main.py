@@ -17,11 +17,11 @@ def main():
 
     for epoch in range(NUM_EPOCHS):
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer, DEVICE)
-        val_loss, val_acc = evaluate(model, val_loader, criterion, DEVICE)
+        val_loss, val_auc = evaluate(model, val_loader, criterion, DEVICE)
 
         print(f"Epoch {epoch + 1}/{NUM_EPOCHS}")
         print(f"Train Loss: {train_loss:.4f}")
-        print(f"Val Loss: {val_loss:.4f} | Val Acc: {val_acc:.4f}")
+        print(f"Val Loss: {val_loss:.4f} | Val AUC: {val_auc:.4f}")
 
 if __name__ == "__main__":
     main()
