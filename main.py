@@ -11,12 +11,6 @@ from src.dataset import get_dataloaders
 def main():
     train_loader, val_loader = get_dataloaders()
 
-    #test dataloader
-    image, label = next(iter(train_loader))
-    print("Train batch image shape:", images.shape)
-    print("Train batch label shape:", labels.shape)
-    print("Sample labels:", labels[:2])
-
     model = get_model().to(DEVICE)
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
