@@ -1,30 +1,51 @@
+
+
 import pandas as pd
+
 import kagglehub
+
+
 from PIL import Image
+
 import os
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as T
 
 from config import BATCH_SIZE, IMAGE_SIZE, CLASS_NAMES
 
+
 path = kagglehub.dataset_download("ashery/chexpert")
+
+
 TARGET_COLUMNS = CLASS_NAMES
+  
+
+#you can change these
 
 train_tf = T.Compose([
     T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
     T.RandomRotation(3),
     T.ColorJitter(brightness=0.03, contrast=0.03),
     T.ToTensor(),
+
     T.Normalize([0.485, 0.456, 0.406],
                 [0.229, 0.224, 0.225]),
 ])
 
+  
+
 valid_tf = T.Compose([
+
     T.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+
     T.ToTensor(),
+
     T.Normalize([0.485, 0.456, 0.406],
+
                 [0.229, 0.224, 0.225]),
+
 ])
 
 class CheXpertDataset(Dataset):
@@ -40,15 +61,7 @@ class CheXpertDataset(Dataset):
         row = self.data_paths.iloc[idx]
 
         rel_path = row["Path"].replace("CheXpert-v1.0-small/", "")
-
-        if rel_path.startswith("synthetic/"):
-            image_path = os.path.join(
-                os.path.dirname(os.path.dirname(__file__)),
-                "data",
-                rel_path
-            )
-        else:
-            image_path = os.path.join(self.root_dir, rel_path)
+        image_path = os.path.join(self.root_dir, rel_path)
 
         image = Image.open(image_path).convert("RGB")
 
@@ -72,19 +85,6 @@ def get_dataloaders():
     needed_cols = ["Path"] + TARGET_COLUMNS
     train_df = train_df[needed_cols].copy()
     valid_df = valid_df[needed_cols].copy()
-
-    synthetic_csv = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "data",
-        "synthetic",
-        "synthetic_labels.csv"
-    )
-
-    if os.path.exists(synthetic_csv):
-        synth_df = pd.read_csv(synthetic_csv)
-        synth_df = synth_df[needed_cols].copy()
-        train_df = pd.concat([train_df, synth_df], ignore_index=True)
-        print(f"Added {len(synth_df)} synthetic images")
 
     for col in TARGET_COLUMNS:
         train_df[col] = train_df[col].fillna(0).replace(-1, 0)
