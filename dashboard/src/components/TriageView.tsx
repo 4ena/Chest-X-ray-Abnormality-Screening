@@ -29,10 +29,34 @@ function timeSinceAdmission(dateStr: string): string {
 
 const PAGE_SIZE = 8;
 
+function exportCSV() {
+  const headers = ["ID", "Name", "Age", "Sex", "Tier", "Top Finding", "Confidence", "Admitted"];
+  const rows = patients.map(p => [
+    `P${String(p.id).padStart(3, "0")}`,
+    p.name,
+    p.age,
+    p.sex,
+    TIER_LABELS[getHighestTier(p.findings)],
+    p.topFinding,
+    `${Math.round((p.findings[0]?.confidence || 0) * 100)}%`,
+    p.admissionDate,
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `pneumanosis_triage_${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function TriageView({ onSelectPatient }: TriageViewProps) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [actionMenu, setActionMenu] = useState<number | null>(null);
 
   const filters = [
     { key: "all", label: "All Patients" },
@@ -57,70 +81,72 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // Stats
   const stat = patients.filter(p => getHighestTier(p.findings) === 2).length;
   const priority = patients.filter(p => getHighestTier(p.findings) === 3).length;
   const routine = patients.filter(p => getHighestTier(p.findings) === 4).length;
 
   return (
-    <div className="max-w-[1280px] mx-auto px-6 py-8">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Triage Queue</h1>
-        <p className="text-sm text-gray-400 mt-1">Manage and prioritize patient X-ray readings</p>
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {/* Total */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-gray-400">Total Patients</p>
-            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center">
-              <Shield size={16} className="text-gray-400" />
-            </div>
+    <div className="px-8 py-8">
+      {/* Stats row: title+3 cards on left, chart card on right */}
+      <div className="grid grid-cols-[1fr_280px] gap-4 mb-8">
+        {/* Left: title + 3 stat cards */}
+        <div className="flex flex-col">
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">Triage Queue</h1>
+            <p className="text-sm text-gray-400 mt-1">Manage and prioritize patient X-ray readings</p>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{patients.length}</p>
-          <div className="flex items-center gap-1 mt-2">
-            <TrendingUp size={12} className="text-emerald-500" />
-            <span className="text-xs text-emerald-500 font-medium">12%</span>
-            <span className="text-xs text-gray-400 ml-1">From Last Shift</span>
+          <div className="grid grid-cols-3 gap-4 flex-1">
+            {/* Total */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-gray-400">Total Patients</p>
+                <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center">
+                  <Shield size={14} className="text-gray-400" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-gray-900">{patients.length}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingUp size={11} className="text-emerald-500" />
+                <span className="text-[11px] text-emerald-500 font-medium">12%</span>
+                <span className="text-[11px] text-gray-400 ml-0.5">From Last Shift</span>
+              </div>
+            </div>
+
+            {/* STAT */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-gray-400">STAT Cases</p>
+                <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+                  <AlertTriangle size={14} className="text-red-500" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-red-600">{stat}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingUp size={11} className="text-red-400" />
+                <span className="text-[11px] text-red-400 font-medium">{Math.round((stat / patients.length) * 100)}%</span>
+                <span className="text-[11px] text-gray-400 ml-0.5">of Total</span>
+              </div>
+            </div>
+
+            {/* Priority */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-gray-400">Priority Cases</p>
+                <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Activity size={14} className="text-amber-500" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-amber-600">{priority}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingDown size={11} className="text-amber-400" />
+                <span className="text-[11px] text-amber-400 font-medium">{Math.round((priority / patients.length) * 100)}%</span>
+                <span className="text-[11px] text-gray-400 ml-0.5">of Total</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* STAT */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-gray-400">STAT Cases</p>
-            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-              <AlertTriangle size={16} className="text-red-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-red-600">{stat}</p>
-          <div className="flex items-center gap-1 mt-2">
-            <TrendingUp size={12} className="text-red-400" />
-            <span className="text-xs text-red-400 font-medium">{Math.round((stat / patients.length) * 100)}%</span>
-            <span className="text-xs text-gray-400 ml-1">of Total Patients</span>
-          </div>
-        </div>
-
-        {/* Priority */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-gray-400">Priority Cases</p>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-              <Activity size={16} className="text-amber-500" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-amber-600">{priority}</p>
-          <div className="flex items-center gap-1 mt-2">
-            <TrendingDown size={12} className="text-amber-400" />
-            <span className="text-xs text-amber-400 font-medium">{Math.round((priority / patients.length) * 100)}%</span>
-            <span className="text-xs text-gray-400 ml-1">of Total Patients</span>
-          </div>
-        </div>
-
-        {/* Donut chart */}
+        {/* Right: donut chart (full height) */}
         <PriorityChart stat={stat} priority={priority} routine={routine} />
       </div>
 
@@ -140,33 +166,55 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                 className="pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 w-48"
               />
             </div>
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-              <SlidersHorizontal size={14} />
-              Filter
-            </button>
-            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            {/* Filter button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFilterPanel(!showFilterPanel)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                  showFilterPanel ? "border-gray-900 text-gray-900 bg-gray-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <SlidersHorizontal size={14} />
+                Filter
+              </button>
+              {showFilterPanel && (
+                <div className="absolute right-0 top-11 bg-white rounded-xl border border-gray-200 shadow-lg p-3 z-20 w-44">
+                  <p className="text-[11px] text-gray-400 font-medium uppercase tracking-wider mb-2">Filter by Tier</p>
+                  {filters.map(f => (
+                    <button
+                      key={f.key}
+                      onClick={() => { setFilter(f.key); setPage(1); setShowFilterPanel(false); }}
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                        filter === f.key ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Export button */}
+            <button
+              onClick={exportCSV}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               <Download size={14} />
               Export
             </button>
           </div>
         </div>
 
-        {/* Filter pills */}
-        <div className="flex gap-2 px-6 py-3 border-b border-gray-50">
-          {filters.map(f => (
-            <button
-              key={f.key}
-              onClick={() => { setFilter(f.key); setPage(1); }}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                filter === f.key
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
+        {/* Active filter indicator */}
+        {filter !== "all" && (
+          <div className="flex items-center gap-2 px-6 py-2 bg-gray-50/50 border-b border-gray-50">
+            <span className="text-xs text-gray-400">Filtered:</span>
+            <span className="text-xs font-medium text-gray-700 bg-white px-2 py-0.5 rounded border border-gray-200">
+              {filters.find(f => f.key === filter)?.label}
+            </span>
+            <button onClick={() => { setFilter("all"); setPage(1); }} className="text-xs text-gray-400 hover:text-gray-600 ml-1">Clear</button>
+          </div>
+        )}
 
         {/* Table */}
         <table className="w-full">
@@ -220,10 +268,7 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                       <div className="w-16 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                         <div
                           className="h-full rounded-full"
-                          style={{
-                            width: `${topConf}%`,
-                            backgroundColor: TIER_COLORS[patient.findings[0]?.tier || 4],
-                          }}
+                          style={{ width: `${topConf}%`, backgroundColor: TIER_COLORS[patient.findings[0]?.tier || 4] }}
                         />
                       </div>
                       <span className="text-sm font-medium text-gray-600">{topConf}%</span>
@@ -236,9 +281,36 @@ export default function TriageView({ onSelectPatient }: TriageViewProps) {
                     <span className="text-sm text-gray-500">{timeSinceAdmission(patient.admissionDate)}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                      <MoreHorizontal size={16} />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setActionMenu(actionMenu === patient.id ? null : patient.id); }}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+                      {actionMenu === patient.id && (
+                        <div className="absolute right-0 top-9 bg-white rounded-xl border border-gray-200 shadow-lg py-1.5 z-20 w-40">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onSelectPatient(patient.id); setActionMenu(null); }}
+                            className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            View Details
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActionMenu(null); }}
+                            className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            Flag for Review
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setActionMenu(null); }}
+                            className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            Mark as Read
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
